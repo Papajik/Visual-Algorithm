@@ -1,0 +1,8 @@
+Backward
+https://www.iconfinder.com/icons/126585/arrow_back_previous_icon#size=128
+Fordward
+https://www.iconfinder.com/icons/126569/arrow_forward_next_icon#size=128
+Node
+https://www.iconfinder.com/icons/1608480/circle_dot_o_icon#size=32
+Edge
+https://www.iconfinder.com/icons/214643/line_minus_icon#size=32
