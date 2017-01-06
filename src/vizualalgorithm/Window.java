@@ -6,6 +6,7 @@
 package vizualalgorithm;
 
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -19,6 +20,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
@@ -40,7 +42,6 @@ public class Window extends JFrame {
     PanelGraph panelGraph;
     Panel2DField panelField;
     PanelChooser panelChooser;
- 
 
     public Window() {
         setWindow();
@@ -118,7 +119,6 @@ public class Window extends JFrame {
 
     }
 
-    
     private void setCards() {
         Container pane = getContentPane();
         cards = new JPanel(new CardLayout());

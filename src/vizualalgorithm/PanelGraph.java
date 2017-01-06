@@ -5,15 +5,25 @@
  */
 package vizualalgorithm;
 
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
 /**
@@ -22,11 +32,29 @@ import javax.swing.JToolBar;
  */
 public class PanelGraph extends JPanel {
 
+    private boolean changed;
+    private boolean updating;
     private int namesAsigned = 0;
-    private ArrayList<Node> nodes;
-    private ArrayList<Edge> edges;
-    JToolBar toolBar;
-    JButton jbRun, jbNode, jbEdge;
+    private final ArrayList<Node> nodes;
+    private final ArrayList<Edge> edges;
+    JToolBar createBar;
+    /**
+     * Vlastnosti zobrazeného objektu
+     */
+    JPanel properties;
+    /**
+     * Vlastnosti bodu
+     */
+    JTextField tName, tWide;
+    /**
+     * Vlastnosti hrany
+     */
+    JTextField tLength, tStroke;
+    /**
+     * Výběr orientace
+     */
+    JComboBox combo;
+    CardLayout cards;
     Graphics g2;
 
     /**
@@ -35,58 +63,112 @@ public class PanelGraph extends JPanel {
      */
     int chooser = -1;
     Node selectedNode = null;
-    Node selectedEdge = null;
+    Edge selectedEdge = null;
 
     public PanelGraph() {
+        super(new BorderLayout());
+//        canvas = new JPanel();
+//        add(canvas, BorderLayout.CENTER);
+//        canvas.setBackground(Color.white);
         nodes = new ArrayList<>();
         edges = new ArrayList<>();
-        setToolBar();
+        changed = false;
+        setProperties();
+        setCreateBar();
         setMouse();
-        // Graphics g = this.getGraphics();
-        // paintComponent(g);
+        setBackground(Color.white);
+    }
+
+    public boolean getChanged() {
+        return changed;
     }
 
     private void setMouse() {
         MouseListener mouseListener = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                System.out.println("Graph: Mouse clicked");
-                System.out.println("Chooser:" + chooser);
+                if (properties.getBounds().contains(e.getX(), e.getY())) {
+                    return;
+                }
                 if (chooser == -1) {
-                    if (selectedNode!=null){
-                        selectedNode.setSelected(false);
-                    }
-                    selectedNode = selectNode(e.getX(), e.getY());
-                    if (selectedNode != null) {
-                         System.out.println("Selecting node");
-                        selectedNode.setSelected(true);
-                    }
-                   
+//                    Node n = getNode(e.getX(), e.getY());
+//                    if (n != null) {
+//                        selectNode(n);
+//                    } else {
+//                        selectEdge(getEdge(e.getX(), e.getY()));
+//                    }
+//                    
                 }
                 if (chooser == 1) {
                     // System.out.println("Creating node");
-                    selectedNode = createNode(e.getX(), e.getY());
-                    nodes.add(selectedNode);
+                    Node n = createNode(e.getX(), e.getY());
+                    nodes.add(n);
                 }
-                if (chooser == 2 && selectNode(e.getX(), e.getY()) != null && selectNode(e.getX(), e.getY()) != selectedNode) {
-                    edges.add(new Edge(selectedNode, selectNode(e.getX(), e.getY()), false, 1));
+                if (chooser == 2 && getNode(e.getX(), e.getY()) != null && getNode(e.getX(), e.getY()) != selectedNode) {
+                    edges.add(new Edge(selectedNode, getNode(e.getX(), e.getY()), false, 1));
+
                 }
-                setName("Graf");
-                //System.out.println(e.getComponent().getName());
-                paintComponent();
+                paintImmediately(0, 0, getWidth(), getHeight());
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
+                if (properties.getBounds().contains(e.getX(), e.getY())) {
+                    return;
+                }
+                if (selectNode(getNode(e.getX(), e.getY()))) {
+                } else if (!selectEdge(getEdge(e.getX(), e.getY()))) {
 
+                    deselectProperties();
+                }
+
+                paintImmediately(0, 0, getWidth(), getHeight());
+            }
+
+            private boolean selectNode(Node n) {
+                if (selectedNode != null) {
+                    if (selectedEdge != null) {
+                        selectedEdge.setSelected(false);
+                    }
+                    selectedNode.setSelected(false);
+                    deselectProperties();
+                }
+
+                selectedNode = n;
+                if (selectedNode != null) {
+                    updateProperties(true);
+                    selectedNode.setSelected(true);
+                    return true;
+                }
+                return false;
+            }
+
+            private boolean selectEdge(Edge n) {
+                if (selectedEdge != null) {
+                    selectedEdge.setSelected(false);
+                    if (selectedNode != null) {
+                        selectedNode.setSelected(false);
+                    }
+                }
+
+                selectedEdge = n;
+                if (n != null) {
+
+                    updateProperties(false);
+                    selectedEdge.setSelected(true);
+                    return true;
+                }
+                return false;
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 //System.out.println("Graph: Mouse released");
-                if (selectedNode != null) {
-                    edges.add(createEdge(selectedNode, selectNode(e.getX(), e.getY()), false, 1));
+                if (selectedNode != null && chooser == 2 && getNode(e.getX(), e.getY()) != null) {
+                    System.out.println("Creating edge");
+                    edges.add(createEdge(selectedNode, getNode(e.getX(), e.getY()), false, 1));
                 }
+                paintImmediately(0, 0, getWidth(), getHeight());
             }
 
             @Override
@@ -103,6 +185,18 @@ public class PanelGraph extends JPanel {
         MouseMotionListener ml = new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
+                if (properties.getBounds().contains(e.getX(), e.getY()) || !getBounds().contains(e.getX(), e.getY())) {
+                    return;
+                }
+                if (selectedNode != null && chooser != 2) {
+                    selectedNode.setX(e.getX());
+                    selectedNode.setY(e.getY());
+                    paintImmediately(0, 0, getWidth(), getHeight());
+                }
+                if (selectedNode != null && chooser == 2) {
+                    paintLine((int) selectedNode.getX(), (int) selectedNode.getY(), (int) e.getX(), (int) e.getY());
+                }
+
             }
 
             @Override
@@ -113,41 +207,67 @@ public class PanelGraph extends JPanel {
     }
 
     private Node createNode(double x, double y) {
-        return new Node(x, y, asignName(true));
+        System.out.println("creating node");
+        changed = true;
+        System.out.println(getChanged());
+        return new Node(x, y, asignName());
     }
 
     private Edge createEdge(Node a, Node b, boolean oriented, int length) {
+        changed = true;
         return new Edge(a, b, oriented, length);
     }
 
-    private Node selectNode(double x, double y) {
+    private Node getNode(double x, double y) {
         for (Node nod : nodes) {
-            System.out.println("looking at node" + nod.getName());
             if (nod.contain(x, y)) {
-                System.out.println("found node");
-               return nod;
+                return nod;
+            }
+        }
+        return null;
+    }
+
+    private Edge getEdge(double x, double y) {
+        int hitSize = 8;
+        Line2D.Double line;
+        for (Edge ed : edges) {
+            line = new Line2D.Double(ed.getFrom().getX(), ed.getFrom().getY(), ed.getTo().getX(), ed.getTo().getY());
+            if (line.intersects(x - hitSize / 2, y - hitSize / 2, hitSize, hitSize)) {
+                return ed;
             }
         }
         return null;
     }
 
     public void paintComponent() {
-        Graphics g = this.getGraphics();
+        Graphics g = getGraphics();
         paintComponent(g);
+    }
+
+    public void paintLine(int x1, int y1, int x2, int y2) {
+        Graphics g = this.getGraphics();
+        paintImmediately(Math.min(x1, x2) / 2, Math.min(y1, y2) / 2, (int) (Math.max(x1, x2) * 1.5), (int) (Math.max(y1, y2) * 1.5));
+        g.drawLine(x1, y1, x2, y2);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for (Node nod : nodes) {
+        edges.stream().forEach((edg) -> {
+            edg.paint(g);
+        });
+        nodes.stream().forEach((nod) -> {
             nod.paint(g);
-        }
-        toolBar.repaint();
+        });
+
+        createBar.repaint();
+
     }
 
-    private void setToolBar() {
-        toolBar = new JToolBar();
-        toolBar.setRollover(true);
+    private void setCreateBar() {
+        JButton jbRun, jbNode, jbEdge;
+        createBar = new JToolBar("Create graph");
+        createBar.setRollover(true);
         jbNode = new JButton("Node");
         jbEdge = new JButton("Edge");
         jbRun = new JButton("Run");
@@ -174,12 +294,12 @@ public class PanelGraph extends JPanel {
 //        } catch (Exception ex) {
 //            ex.printStackTrace();
 //        }
-        toolBar.addSeparator();
-        toolBar.add(jbNode);
-        toolBar.addSeparator();
-        toolBar.add(jbEdge);
-        toolBar.addSeparator();
-        toolBar.add(jbRun);
+        createBar.addSeparator();
+        createBar.add(jbNode);
+        createBar.addSeparator();
+        createBar.add(jbEdge);
+        createBar.addSeparator();
+        createBar.add(jbRun);
 
         jbNode.addActionListener((ActionEvent e) -> {
             if (chooser != 1) {
@@ -196,35 +316,208 @@ public class PanelGraph extends JPanel {
                 chooser = -1;
             }
         });
+        add(createBar, BorderLayout.PAGE_START);
+    }
 
-        jbRun.addActionListener((ActionEvent e) -> {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        });
-        add(toolBar);
+    private void setProperties() {
+        cards = new CardLayout();
+        properties = new JPanel(cards);
+        properties.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel propertiesNode = new JPanel();
+        propertiesNode.setLayout(new BoxLayout(propertiesNode, BoxLayout.Y_AXIS));
+        JLabel prop = new JLabel("Vlastnosti");
+        prop.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesNode.add(prop);
+        JLabel glue = new JLabel(" ");
+        propertiesNode.add(glue);
+        JLabel name = new JLabel("Název");
+        name.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesNode.add(name);
+        tName = new JTextField(15);
+        tName.setMaximumSize(tName.getPreferredSize());
+        tName.setEditable(true);
+        tName.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesNode.add(tName);
+        JLabel wide = new JLabel("Velikost");
+        wide.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesNode.add(wide);
+        tWide = new JTextField(15);
+        tWide.setMaximumSize(tWide.getPreferredSize());
+        tWide.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesNode.add(tWide);
+        properties.add(propertiesNode, "node");
+
+        JPanel propertiesEdge = new JPanel();
+        propertiesEdge.setLayout(new BoxLayout(propertiesEdge, BoxLayout.Y_AXIS));
+        JLabel prop2 = new JLabel("Vlastnosti");
+        prop2.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesEdge.add(prop2);
+        JLabel glue2 = new JLabel(" ");
+        propertiesEdge.add(glue2);
+        JLabel size = new JLabel("Délka");
+        size.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesEdge.add(size);
+        tLength = new JTextField(15);
+        tLength.setMaximumSize(tLength.getPreferredSize());
+        tLength.setEditable(true);
+        propertiesEdge.add(tLength);
+        JLabel width = new JLabel("Šířka");
+        width.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesEdge.add(width);
+
+        tStroke = new JTextField(15);
+        tStroke.setMaximumSize(tStroke.getPreferredSize());
+        propertiesEdge.add(tStroke);
+        properties.add(propertiesEdge, "edge");
+        ;
+        JLabel ori = new JLabel("Orientace");
+        ori.setAlignmentX(Component.CENTER_ALIGNMENT);
+        propertiesEdge.add(ori);
+        combo = new JComboBox();
+        combo.setMaximumSize(tStroke.getMaximumSize());
+        propertiesEdge.add(combo);
+        setActions();
+        deselectProperties();
+        cards.show(properties, "edge");
+        add(properties, BorderLayout.EAST);
+    }
+
+    private void updateProperties(boolean node) {
+        if (node) {
+            tName.setText(selectedNode.getName());
+            tName.setEditable(true);
+            tName.setEnabled(true);
+            tWide.setText("" + selectedNode.getSize());
+            tWide.setEditable(true);
+            tWide.setEnabled(true);
+            cards.show(properties, "node");
+        } else {
+            tLength.setText("" + selectedEdge.getLength());
+            tLength.setEditable(true);
+            tLength.setEnabled(true);
+            tStroke.setText("" + selectedEdge.getStroke());
+            tStroke.setEditable(true);
+            tStroke.setEnabled(true);
+            updating = true;
+            combo.removeAllItems();
+            combo.addItem("Bez orientace");
+            String from = selectedEdge.getFrom().getName();
+            String to = selectedEdge.getTo().getName();
+            combo.addItem(from + "->" + to);
+            combo.addItem(to + "->" + from);
+            if (!selectedEdge.isOriented()) {
+                combo.setSelectedItem("Bez orientace");
+            } else {
+                combo.setSelectedItem(from + "->" + to);
+            }
+            combo.setEnabled(true);
+            updating = false;
+            cards.show(properties, "edge");
+        }
+
+    }
+
+    private void deselectProperties() {
+        tName.setText("");
+        tName.setEditable(false);
+        tName.setEnabled(false);
+        tWide.setText("");
+        tWide.setEditable(false);
+        tWide.setEnabled(false);
+        tLength.setText("");
+        tLength.setEditable(false);
+        tLength.setEnabled(false);
+        tStroke.setText("");
+        tStroke.setEditable(false);
+        tStroke.setEnabled(false);
+        combo.setEnabled(false);
     }
 
     /**
-     * 
-     * @param node If true, then looking for node name. Otherwise we are looking for name of edge
-     * @return 
+     *
+     * @param node If true, then looking for node name. Otherwise we are looking
+     * for name of edge
+     * @return
      */
-    private String asignName(boolean node) {
+    private String asignName() {
         char startChar;
         String name = "";
         char c;
         int temp = namesAsigned;
-        if (node) {
-            startChar = 'A';
-        } else {
-            startChar = 'a';
-        }
+        startChar = 'A';
         for (int i = 0; i <= (namesAsigned / 26); i++) {
             c = (char) (startChar + temp % 26);
-            name=c+name;
-            temp/=26;
+            name = c + name;
+            temp /= 26;
         }
         namesAsigned++;
         return name;
+
     }
 
-} 
+    private void setActions() {
+        tName.addActionListener((ActionEvent e) -> {
+            selectedNode.setName(tName.getText());
+            paintImmediately(0, 0, getWidth(), getHeight());
+        });
+        tWide.addActionListener((ActionEvent e) -> {
+            try {
+                double d = Double.parseDouble(tWide.getText());
+                if (d < 10) {
+                    d = 10;
+                } else if (d > 70) {
+                    d = 70;
+                }
+                tWide.setText("" + d);
+                selectedNode.setSize(d);
+            } catch (NumberFormatException ex) {
+                tWide.setText(selectedNode.getSize() + "");
+            }
+            paintImmediately(0, 0, getWidth(), getHeight());
+        });
+        tLength.addActionListener((ActionEvent e) -> {
+            try {
+                int i = Integer.parseInt(tLength.getText());
+                selectedEdge.setLength(i);
+            } catch (NumberFormatException ex) {
+                tLength.setText(selectedEdge.getLength() + "");
+            }
+            paintImmediately(0, 0, getWidth(), getHeight());
+        });
+        tStroke.addActionListener((ActionEvent e) -> {
+            try {
+                int i = Integer.parseInt(tStroke.getText());
+                if (i < 1) {
+                    i = 10;
+                } else if (i > 10) {
+                    i = 10;
+
+                }
+                tStroke.setText("" + i);
+                selectedEdge.setStroke(i);
+            } catch (NumberFormatException ex) {
+                tStroke.setText(selectedEdge.getStroke() + "");
+            }
+            paintImmediately(0, 0, getWidth(), getHeight());
+        });
+
+        combo.addItemListener((ItemEvent e) -> {
+            if (e.getStateChange() == ItemEvent.SELECTED && !updating) {
+                String selected = (String) e.getItem();
+                if (selected.equals("Bez orientace")) {
+                    System.out.println("No orientation");
+                    selectedEdge.setOriented(false);
+                    return;
+                }
+
+                selectedEdge.setOriented(true);
+                if (!selected.startsWith(selectedEdge.getFrom().getName())) {
+                    System.out.println("Switching nodes");
+                    selectedEdge.switchNodes();
+                }
+            }
+        });
+
+    }
+}

@@ -5,12 +5,7 @@
  */
 package vizualalgorithm;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javafx.scene.layout.Border;
-import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -22,7 +17,7 @@ import javax.swing.JPanel;
 public class PanelChooser extends JPanel {
 
     private JButton jbTree, jbGraph, jbField;
-    private Window win;
+    private final Window win;
 
     public PanelChooser(Window win) {
         initComponents();
@@ -42,26 +37,17 @@ public class PanelChooser extends JPanel {
     }
 
     private void setListeners() {
-        jbGraph.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                win.setPanel(1);
-                win.repaint();
-            }
+        jbGraph.addActionListener((ActionEvent e) -> {
+            win.setPanel(1);
+            win.repaint();
         });
-        jbField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                win.setPanel(2);
-                win.repaint();
-            }
+        jbField.addActionListener((ActionEvent e) -> {
+            win.setPanel(2);
+            win.repaint();
         });
-        jbTree.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                win.setPanel(3);
-                win.repaint();
-            }
+        jbTree.addActionListener((ActionEvent e) -> {
+            win.setPanel(3);
+            win.repaint();
         });
     }
 
