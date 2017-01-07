@@ -139,6 +139,8 @@ public class Window extends JFrame {
         itNewGraph.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                cards.remove(panelGraph);
+                cards.add(new PanelGraph(), "graph");
                 setPanel(1);
                 System.out.println("Graph");
             }

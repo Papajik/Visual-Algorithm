@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
 
 /**
  *
@@ -22,10 +23,27 @@ public class Node {
 
     private double size = 40;
     private String name;
-    private double x, y;
+    private int x, y;
     private boolean selected;
 
-    public Node(double x, double y, String name) {
+    /**
+     * Hrany vycházející z tohoto bodu. Pro funkcionalitu procházení grafu
+     */
+    private ArrayList<Edge> outcome = null;
+    /**
+     * Pro vykreslení jiné barvy;
+     */
+    boolean start = false;
+    /**
+     * Pro vykreslení jiné bervy
+     */
+    boolean finish = false;
+    /**
+     * Pro vykreslení jiné barvy
+     */
+    boolean searched = false;
+
+    public Node(int x, int y, String name) {
         this.x = x;
         this.y = y;
         this.name = name;
@@ -44,19 +62,19 @@ public class Node {
         return name;
     }
 
-    public void setX(double x) {
+    public void setX(int x) {
         this.x = x;
     }
 
-    public void setY(double y) {
+    public void setY(int y) {
         this.y = y;
     }
 
-    public double getX() {
+    public int getX() {
         return x;
     }
 
-    public double getY() {
+    public int getY() {
         return y;
     }
 
@@ -67,9 +85,33 @@ public class Node {
     public void setSize(double x) {
         size = x;
     }
-    
-    public void setName(String s){
+
+    public void setName(String s) {
         name = s;
+    }
+
+    public void setStart(boolean s) {
+        start = s;
+    }
+    
+    public void setFinish(boolean f){
+        finish = f;
+    }
+    
+    public void setSearcher(boolean s){
+        searched = s;
+    }
+
+    public void initialize() {
+        outcome = new ArrayList<>();
+    }
+
+    public ArrayList<Edge> getOutcome() {
+        return outcome;
+    }
+
+    public void addOutcome(Edge e) {
+        outcome.add(e);
     }
 
     public void paint(Graphics g) {
@@ -80,6 +122,15 @@ public class Node {
             g2.setColor(Color.CYAN);
         } else {
             g2.setColor(Color.WHITE);
+        }
+        if (searched) {
+            g2.setColor(new Color(82, 173, 114));
+        }
+        if (start) {
+            g2.setColor(new Color(240, 240, 0));
+        }
+        if (finish) {
+            g2.setColor(new Color(204, 51, 0));
         }
         Stroke oldStroke = g2.getStroke();
         g2.fill(e);
