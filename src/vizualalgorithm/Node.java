@@ -13,13 +13,14 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  *
  * @author Papi
  */
-public class Node {
+public class Node implements Serializable{
 
     private double size = 40;
     private String name;
@@ -31,17 +32,28 @@ public class Node {
      */
     private ArrayList<Edge> outcome = null;
     /**
-     * Pro vykreslení jiné barvy;
+     * Odkaz na cestu zpět ro vykreslení nalezené cesty
+     */
+    Edge pathBack;
+   
+    /**
+     * Startovní bod
      */
     boolean start = false;
     /**
-     * Pro vykreslení jiné bervy
+     * Konečný bod
      */
     boolean finish = false;
     /**
-     * Pro vykreslení jiné barvy
+     * Navštívený (neaktivní)
      */
-    boolean searched = false;
+    boolean visited = false;
+    /**
+     * Uložený v zásobníku
+     */
+    boolean stacked = false;
+    
+    
 
     public Node(int x, int y, String name) {
         this.x = x;
@@ -93,13 +105,21 @@ public class Node {
     public void setStart(boolean s) {
         start = s;
     }
-    
-    public void setFinish(boolean f){
+
+    public void setFinish(boolean f) {
         finish = f;
     }
-    
-    public void setSearcher(boolean s){
-        searched = s;
+
+    public void setVisited(boolean s) {
+        visited = s;
+    }
+
+    public void setStacked(boolean s) {
+        stacked = s;
+    }
+
+    public boolean isVisited() {
+        return visited;
     }
 
     public void initialize() {
@@ -113,25 +133,47 @@ public class Node {
     public void addOutcome(Edge e) {
         outcome.add(e);
     }
+    
+     public void addPathBack(Edge e){
+        pathBack = e;
+    }
+     
+     public Edge getPathBack(){
+         return pathBack;
+     }
+
+    public Edge getEdgeTo(Node n) {
+        for (Edge e : outcome) {
+            if ((e.getTo().equals(n) || e.getTo().equals(this)) && (e.getFrom().equals(n) || e.getFrom().equals(this))) {
+                return e;
+            }
+        }
+        return null;
+    }
 
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Ellipse2D e = new Ellipse2D.Double(x - size / 2, y - size / 2, size, size);
-        if (selected) {
-            g2.setColor(Color.CYAN);
-        } else {
-            g2.setColor(Color.WHITE);
-        }
-        if (searched) {
-            g2.setColor(new Color(82, 173, 114));
-        }
+        g2.setColor(Color.WHITE);
+
         if (start) {
             g2.setColor(new Color(240, 240, 0));
         }
         if (finish) {
-            g2.setColor(new Color(204, 51, 0));
+            g2.setColor(new Color(255, 121, 77));
         }
+        if (visited) {
+            g2.setColor(new Color(82, 173, 114));
+        }
+
+        if (stacked) {
+            g2.setColor(new Color(100, 238, 138));
+        }
+        if (selected) {
+            g2.setColor(Color.CYAN);
+        }
+
         Stroke oldStroke = g2.getStroke();
         g2.fill(e);
         g2.setColor(Color.black);
@@ -143,4 +185,8 @@ public class Node {
         g2.drawString(name, (float) (x - size / 4), (float) (y + size / 4));
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
 }

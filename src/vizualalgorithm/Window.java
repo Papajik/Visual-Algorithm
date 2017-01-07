@@ -55,7 +55,9 @@ public class Window extends JFrame {
         setCards();
         setMenuButtons();
         setSize(new Dimension(1366, 768));
-        setVisible(true);
+    }
+    public void setVisible(){
+         setVisible(true);
     }
 
     private void setMenu() {

@@ -14,3 +14,5 @@ Pause
 https://www.iconfinder.com/icons/326574/pause_icon#size=32
 Stop
 https://www.iconfinder.com/icons/326597/stop_icon#size=32
+Run2
+https://www.iconfinder.com/icons/326584/circle_play_icon#size=32

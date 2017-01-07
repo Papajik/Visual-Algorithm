@@ -58,7 +58,7 @@ public class PanelGraph extends JPanel {
     private int namesAsigned = 0;
     private final ArrayList<Node> nodes;
     private final ArrayList<Edge> edges;
-    JToolBar createBar, runBar;
+    JToolBar createBar;
     /**
      * Vlastnosti zobrazeného objektu
      */
@@ -75,10 +75,7 @@ public class PanelGraph extends JPanel {
      * Výběr orientace
      */
     JComboBox combProperties, combAlgorithm;
-    /**
-     * Nastavení
-     */
-    JTextField output, name;
+
     CardLayout cards;
     Graphics g2;
 
@@ -100,7 +97,6 @@ public class PanelGraph extends JPanel {
         changed = false;
         setProperties();
         setCreateBar();
-        setRunOptions();
         setMouse();
         setBackground(Color.white);
         cards.show(rightPanel, "node");
@@ -108,6 +104,30 @@ public class PanelGraph extends JPanel {
 
     public boolean getChanged() {
         return changed;
+    }
+
+    public JPanel getRightPanel() {
+        return rightPanel;
+    }
+
+    public Node getSelectedNode() {
+        return selectedNode;
+    }
+
+    public ArrayList<Node> getNodes() {
+        return nodes;
+    }
+
+    public ArrayList<Edge> getEdges() {
+        return edges;
+    }
+
+    public void stopGenerating() {
+        generateGraph = false;
+        createBar.setVisible(true);
+        add(createBar, BorderLayout.PAGE_START);
+        cards.show(rightPanel, "node");
+
     }
 
     //Seting mouse listeners
@@ -163,21 +183,25 @@ public class PanelGraph extends JPanel {
             }
 
             private boolean selectEdge(Edge n) {
-                if (selectedEdge != null) {
-                    selectedEdge.setSelected(false);
-                    if (selectedNode != null) {
-                        selectedNode.setSelected(false);
+                if (!generateGraph) {
+                    if (selectedEdge != null) {
+                        selectedEdge.setSelected(false);
+                        if (selectedNode != null) {
+                            selectedNode.setSelected(false);
+                        }
                     }
-                }
 
-                selectedEdge = n;
-                if (n != null) {
+                    selectedEdge = n;
+                    if (n != null) {
 
-                    updateProperties(false);
-                    selectedEdge.setSelected(true);
-                    return true;
+                        updateProperties(false);
+                        selectedEdge.setSelected(true);
+                        return true;
+                    }
+                    return false;
+                } else {
+                    return false;
                 }
-                return false;
             }
 
             @Override
@@ -346,17 +370,11 @@ public class PanelGraph extends JPanel {
         jbNode.setIcon(new ImageIcon(filePath + "Node.png"));
         jbEdge.setIcon(new ImageIcon(filePath + "Edge.png"));
         jbRun.setIcon(new ImageIcon(filePath + "Run.png"));
-        combAlgorithm = new JComboBox();
-        combAlgorithm.addItem("Prohledávání do hloubky");
-        combAlgorithm.addItem("Prohledávání do šířky");
-        combAlgorithm.setMaximumSize(jbRun.getPreferredSize());
-        combAlgorithm.setAlignmentX(LEFT_ALIGNMENT);
+
         createBar.addSeparator();
         createBar.add(jbNode);
         createBar.addSeparator();
         createBar.add(jbEdge);
-        createBar.addSeparator();
-        createBar.add(combAlgorithm);
         createBar.addSeparator();
         createBar.add(jbRun);
 
@@ -385,9 +403,9 @@ public class PanelGraph extends JPanel {
         });
 
         jbRun.addActionListener((ActionEvent e) -> {
-            alg = new Algorithm();
+            alg = new Algorithm(this);
             createBar.setVisible(false);
-            createRunBar();
+
             cards.show(rightPanel, "options");
             generateGraph = true;
             chooser = -1;
@@ -396,38 +414,7 @@ public class PanelGraph extends JPanel {
     }
 
 //</editor-fold>
-    //<editor-fold desc="Creating JToolBar for running algorithm" defaultstate="collapsed">
-    private void createRunBar() {
-        runBar = new JToolBar("Průběh algoritmu");
-        JButton jbBack = new JButton("Zpět");
-        JButton jbNext = new JButton("Dopředu");
-        JButton jbPause = new JButton("Pozastavit");
-        JButton jbContinue = new JButton("Pokračovat");
-        JButton jbStop = new JButton("Zastavit");
-
-        String filePath = new File("").getAbsolutePath() + "\\src\\Assets\\";
-        jbNext.setIcon(new ImageIcon(filePath + "Forw.png"));
-        jbBack.setIcon(new ImageIcon(filePath + "Back.png"));
-        jbPause.setIcon(new ImageIcon(filePath + "Pause.png"));
-        jbContinue.setIcon(new ImageIcon(filePath + "Continue.png"));
-        jbStop.setIcon(new ImageIcon(filePath + "Stop.png"));
-
-        runBar.add(jbBack);
-        runBar.addSeparator();
-        runBar.add(jbNext);
-        runBar.addSeparator();
-        runBar.addSeparator();
-        runBar.addSeparator();
-        runBar.add(jbPause);
-        runBar.addSeparator();
-        runBar.add(jbContinue);
-        runBar.addSeparator();
-        runBar.add(jbStop);
-        add(runBar, BorderLayout.PAGE_START);
-    }
-//</editor-fold>
     //<editor-fold desc="Create Properties Panel" defaultstate="collapsed">
-
     private void setProperties() {
         cards = new CardLayout();
         rightPanel = new JPanel(cards);
@@ -479,7 +466,7 @@ public class PanelGraph extends JPanel {
         tStroke.setMaximumSize(tStroke.getPreferredSize());
         propertiesEdge.add(tStroke);
         rightPanel.add(propertiesEdge, "edge");
-        ;
+
         JLabel ori = new JLabel("Orientace");
         ori.setAlignmentX(Component.CENTER_ALIGNMENT);
         propertiesEdge.add(ori);
@@ -525,6 +512,8 @@ public class PanelGraph extends JPanel {
                 updating = false;
                 cards.show(rightPanel, "edge");
             }
+        } else {
+            alg.updateNode(selectedNode);
         }
     }
 
@@ -610,45 +599,5 @@ public class PanelGraph extends JPanel {
 
     }
 
-    //</editor-fold>
-    //<editor-fold desc="Create Run options panel" defaultstate="collapsed">
-    private void setRunOptions() {
-        JPanel options = new JPanel();
-        options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
-        JLabel step = new JLabel("Aktuální krok");
-        output = new JTextField(15);
-        output.setMaximumSize(output.getPreferredSize());
-        output.setEditable(false);
-        JLabel chosed = new JLabel("Vybraný bod");
-        name = new JTextField(15);
-        name.setMaximumSize(name.getPreferredSize());
-        name.setEditable(false);
-        JButton setStart = new JButton("Nastav start");
-        JButton setEnd = new JButton("Nastav konec");
-
-        options.add(step);
-        options.add(output);
-        options.add(chosed);
-        options.add(name);
-        options.add(setStart);
-        options.add(setEnd);
-        rightPanel.add(options, "options");
-
-        setStart.addActionListener((ActionEvent e) -> {
-            if (selectedNode != null) {
-                alg.setStart(selectedNode);
-            }
-            paintImmediately(0, 0, getWidth(), getHeight());
-        });
-
-        setEnd.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                alg.setFinish(selectedNode);
-                paintImmediately(0, 0, getWidth(), getHeight());
-            }
-
-        });
-    }
     //</editor-fold>
 }

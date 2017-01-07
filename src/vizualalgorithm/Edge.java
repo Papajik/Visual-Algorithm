@@ -11,22 +11,38 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.io.Serializable;
 
 /**
  *
  * @author Papi
  */
-public class Edge {
+public class Edge implements Serializable {
 
-    private String name;
+    /**
+     * Algorithm Již navštívená hrana, nelze znovu použít
+     */
+    private boolean visited;
+    /**
+     * PanelGraph Üživatelem vybraná hrana
+     */
     private boolean selected;
     private Node from, to;
+    /**
+     * PanelGraph Značí orientovanou hranu
+     */
     private boolean oriented;
+    /**
+     * Algorithm Vyznačí zpětně nejvýhodnější cestu k cílovému bodu
+     */
+    private boolean bestPath;
+    /**
+     * Algorithm Cesta již nalezená při procházení grafu
+     */
+    private boolean known;
     private int length;
     private int stroke = 5;
 
@@ -77,10 +93,36 @@ public class Edge {
         return selected;
     }
 
+    public void setVisited(boolean x) {
+        visited = x;
+    }
+
+    public void setBestPath(boolean x) {
+        bestPath = x;
+    }
+
+    public void setKnown(boolean x) {
+        known = x;
+    }
+
+    public boolean getKnown() {
+        return known;
+    }
+
     public void switchNodes() {
         Node temp = from;
         from = to;
         to = temp;
+    }
+
+    public Node getOposite(Node n) {
+        if (from.equals(n)) {
+            return to;
+        }
+        if (to.equals(n)) {
+            return from;
+        }
+        return null;
     }
 
     public void paint(Graphics g) {
@@ -93,13 +135,24 @@ public class Edge {
         } else {
             g2.setColor(Color.ORANGE);
         }
+        if (known) {
+            g2.setColor(new Color(100, 238, 138));
+
+        }
+        if (visited) {
+            g2.setColor(new Color(0, 102, 102));
+        }
+
+        if (bestPath) {
+            g2.setColor(new Color(27, 30, 251));
+        }
         Stroke oldStroke = g2.getStroke();
         g2.setStroke(new BasicStroke(stroke));
         g2.drawLine(start.x, start.y, finish.x, finish.y);
 
         Font font = new Font("Serif", Font.PLAIN, 20);
         g2.setFont(font);
-        if (!oriented){
+        if (!oriented) {
             drawArrow(g2, finish, start);
         }
         drawArrow(g2, start, finish);
@@ -109,6 +162,7 @@ public class Edge {
     }
 
     private void drawArrow(Graphics2D g2, Point tail, Point tip) {
+
         double deviation = Math.toRadians(20);
         int arrowLength = 30;
         double dy = tip.y - tail.y;
@@ -122,5 +176,10 @@ public class Edge {
             g2.draw(new Line2D.Double(tip.x, tip.y, x, y));
             rho = theta - deviation;
         }
+    }
+
+    @Override
+    public String toString() {
+        return from.getName() + ":" + to.getName();
     }
 }

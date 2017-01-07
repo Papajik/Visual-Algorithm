@@ -14,8 +14,10 @@ public class VizualAlgorithm {
     /**
      * @param args the command line arguments
      */
+    static Window win;
     public static void main(String[] args) {
-       Window win = new Window();
+       win = new Window();
+       win.setVisible();
     }
     
 }
