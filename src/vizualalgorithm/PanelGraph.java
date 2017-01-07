@@ -16,9 +16,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
+import java.io.File;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -37,7 +39,7 @@ public class PanelGraph extends JPanel {
     private int namesAsigned = 0;
     private final ArrayList<Node> nodes;
     private final ArrayList<Edge> edges;
-    JToolBar createBar;
+    JToolBar createBar, runBar;
     /**
      * Vlastnosti zobrazeného objektu
      */
@@ -53,7 +55,7 @@ public class PanelGraph extends JPanel {
     /**
      * Výběr orientace
      */
-    JComboBox combo;
+    JComboBox combProperties, combAlgorithm;
     CardLayout cards;
     Graphics g2;
 
@@ -75,6 +77,7 @@ public class PanelGraph extends JPanel {
         changed = false;
         setProperties();
         setCreateBar();
+        setRunOptions();
         setMouse();
         setBackground(Color.white);
     }
@@ -83,21 +86,13 @@ public class PanelGraph extends JPanel {
         return changed;
     }
 
+    //Seting mouse listeners
     private void setMouse() {
         MouseListener mouseListener = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (properties.getBounds().contains(e.getX(), e.getY())) {
                     return;
-                }
-                if (chooser == -1) {
-//                    Node n = getNode(e.getX(), e.getY());
-//                    if (n != null) {
-//                        selectNode(n);
-//                    } else {
-//                        selectEdge(getEdge(e.getX(), e.getY()));
-//                    }
-//                    
                 }
                 if (chooser == 1) {
                     // System.out.println("Creating node");
@@ -205,12 +200,35 @@ public class PanelGraph extends JPanel {
         };
         this.addMouseMotionListener(ml);
     }
+    //<editor-fold desc="Work with Nodes and Edges" defaultstate="collapsed">
 
     private Node createNode(double x, double y) {
-        System.out.println("creating node");
+        //System.out.println("creating node");
         changed = true;
-        System.out.println(getChanged());
+        // System.out.println(getChanged());
         return new Node(x, y, asignName());
+    }
+
+    /**
+     *
+     * @param node If true, then looking for node name. Otherwise we are looking
+     * for name of edge
+     * @return
+     */
+    private String asignName() {
+        char startChar;
+        String name = "";
+        char c;
+        int temp = namesAsigned;
+        startChar = 'A';
+        for (int i = 0; i <= (namesAsigned / 26); i++) {
+            c = (char) (startChar + temp % 26);
+            name = c + name;
+            temp /= 26;
+        }
+        namesAsigned++;
+        return name;
+
     }
 
     private Edge createEdge(Node a, Node b, boolean oriented, int length) {
@@ -238,16 +256,11 @@ public class PanelGraph extends JPanel {
         }
         return null;
     }
-
+//</editor-fold>
+    //<editor-fold desc="Rendering" defaultstate="collapsed">
     public void paintComponent() {
         Graphics g = getGraphics();
         paintComponent(g);
-    }
-
-    public void paintLine(int x1, int y1, int x2, int y2) {
-        Graphics g = this.getGraphics();
-        paintImmediately(Math.min(x1, x2) / 2, Math.min(y1, y2) / 2, (int) (Math.max(x1, x2) * 1.5), (int) (Math.max(y1, y2) * 1.5));
-        g.drawLine(x1, y1, x2, y2);
     }
 
     @Override
@@ -261,63 +274,105 @@ public class PanelGraph extends JPanel {
         });
 
         createBar.repaint();
-
     }
 
+    public void paintLine(int x1, int y1, int x2, int y2) {
+        Graphics g = this.getGraphics();
+        paintImmediately(Math.min(x1, x2) / 2, Math.min(y1, y2) / 2, (int) (Math.max(x1, x2) * 1.5), (int) (Math.max(y1, y2) * 1.5));
+        g.drawLine(x1, y1, x2, y2);
+    }
+//</editor-fold>
+    //<editor-fold desc="Creating JToolBar for generating graph" defaultstate="collapsed">
     private void setCreateBar() {
         JButton jbRun, jbNode, jbEdge;
-        createBar = new JToolBar("Create graph");
+        createBar = new JToolBar("Tvorba grafu");
         createBar.setRollover(true);
-        jbNode = new JButton("Node");
-        jbEdge = new JButton("Edge");
-        jbRun = new JButton("Run");
+        jbNode = new JButton("Nový uzel");
+        jbEdge = new JButton("Nová hrana");
+        jbRun = new JButton("Spusť algoritmus");
 
-//        try {
-//            jbBackward = new JButton();
-//            jbBackward.setBorder(null);
-//            jbBackward.setContentAreaFilled(false);
-//            ImageIcon img = new ImageIcon(getClass().getResource("Back.png"));
-//            jbBackward.setIcon(img);
-//             jbBackward = new JButton(new ImageIcon("scr\\Assets\\Back.png"));
-//            jbForward = new JButton(new ImageIcon("scr\\Assets\\Forw.png"));
-//            jbNode = new JButton(new ImageIcon("scr\\Assets\\Node.png"));
-//            jbEdge = new JButton(new ImageIcon("scr\\Assets\\Edge.png"));
-//            Image img = ImageIO.read(getClass().getResource("Assets/Back.png"));
-//            jbBackward.setIcon(new ImageIcon(img));
-//            img = ImageIO.read(getClass().getResource("Assets\\Forw.png"));
-//            jbForward.setIcon(new ImageIcon(img));
-//            img = ImageIO.read(getClass().getResource("Assets\\Edge.png"));
-//            jbEdge.setIcon(new ImageIcon(img));
-//            img = ImageIO.read(getClass().getResource("Assets\\Node.png"));
-//            jbNode.setIcon(new ImageIcon(img));
-//
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
+        String filePath = new File("").getAbsolutePath() + "\\src\\Assets\\";
+        jbNode.setIcon(new ImageIcon(filePath + "Node.png"));
+        jbEdge.setIcon(new ImageIcon(filePath + "Edge.png"));
+        jbRun.setIcon(new ImageIcon(filePath + "Run.png"));
+        combAlgorithm = new JComboBox();
+        combAlgorithm.addItem("Prohledávání do hloubky");
+        combAlgorithm.addItem("Prohledávání do šířky");
+        combAlgorithm.setMaximumSize(jbRun.getPreferredSize());
+        combAlgorithm.setAlignmentX(LEFT_ALIGNMENT);
         createBar.addSeparator();
         createBar.add(jbNode);
         createBar.addSeparator();
         createBar.add(jbEdge);
         createBar.addSeparator();
+        createBar.add(combAlgorithm);
+        createBar.addSeparator();
         createBar.add(jbRun);
 
         jbNode.addActionListener((ActionEvent e) -> {
             if (chooser != 1) {
+                jbNode.setBackground(new Color(153, 204, 255));
+                jbEdge.setBackground(null);
                 chooser = 1;
             } else {
+                jbNode.setBackground(null);
+                jbEdge.setBackground(null);
                 chooser = -1;
             }
         });
 
         jbEdge.addActionListener((ActionEvent e) -> {
             if (chooser != 2) {
+                jbEdge.setBackground(new Color(153, 204, 255));
+                jbNode.setBackground(null);
                 chooser = 2;
             } else {
+                jbNode.setBackground(null);
+                jbEdge.setBackground(null);
                 chooser = -1;
             }
         });
+
+        jbRun.addActionListener((ActionEvent e) -> {
+            createBar.setVisible(false);
+            createRunBar();
+        });
         add(createBar, BorderLayout.PAGE_START);
     }
+ 
+//</editor-fold>
+    //<editor-fold desc="Creating JToolBar for running algorithm" defaultstate="collapsed">
+
+    private void createRunBar() {
+        runBar = new JToolBar("Průběh algoritmu");
+        JButton jbBack = new JButton("Zpět");
+        JButton jbNext = new JButton("Dopředu");
+        JButton jbPause = new JButton("Pozastavit");
+        JButton jbContinue = new JButton("Pokračovat");
+        JButton jbStop = new JButton("Zastavit");
+
+        String filePath = new File("").getAbsolutePath() + "\\src\\Assets\\";
+        jbNext.setIcon(new ImageIcon(filePath + "Forw.png"));
+        jbBack.setIcon(new ImageIcon(filePath + "Back.png"));
+        jbPause.setIcon(new ImageIcon(filePath + "Pause.png"));
+        jbContinue.setIcon(new ImageIcon(filePath + "Continue.png"));
+        jbStop.setIcon(new ImageIcon(filePath + "Stop.png"));
+
+        runBar.add(jbBack);
+        runBar.addSeparator();
+        runBar.add(jbNext);
+        runBar.addSeparator();
+        runBar.addSeparator();
+        runBar.addSeparator();
+        runBar.add(jbPause);
+        runBar.addSeparator();
+        runBar.add(jbContinue);
+        runBar.addSeparator();
+        runBar.add(jbStop);
+        add(runBar, BorderLayout.PAGE_START);
+    }
+//</editor-fold>
+    //<editor-fold desc="Create Properties Panel" defaultstate="collapsed">
 
     private void setProperties() {
         cards = new CardLayout();
@@ -374,9 +429,9 @@ public class PanelGraph extends JPanel {
         JLabel ori = new JLabel("Orientace");
         ori.setAlignmentX(Component.CENTER_ALIGNMENT);
         propertiesEdge.add(ori);
-        combo = new JComboBox();
-        combo.setMaximumSize(tStroke.getMaximumSize());
-        propertiesEdge.add(combo);
+        combProperties = new JComboBox();
+        combProperties.setMaximumSize(tStroke.getMaximumSize());
+        propertiesEdge.add(combProperties);
         setActions();
         deselectProperties();
         cards.show(properties, "edge");
@@ -400,18 +455,18 @@ public class PanelGraph extends JPanel {
             tStroke.setEditable(true);
             tStroke.setEnabled(true);
             updating = true;
-            combo.removeAllItems();
-            combo.addItem("Bez orientace");
+            combProperties.removeAllItems();
+            combProperties.addItem("Bez orientace");
             String from = selectedEdge.getFrom().getName();
             String to = selectedEdge.getTo().getName();
-            combo.addItem(from + "->" + to);
-            combo.addItem(to + "->" + from);
+            combProperties.addItem(from + "->" + to);
+            combProperties.addItem(to + "->" + from);
             if (!selectedEdge.isOriented()) {
-                combo.setSelectedItem("Bez orientace");
+                combProperties.setSelectedItem("Bez orientace");
             } else {
-                combo.setSelectedItem(from + "->" + to);
+                combProperties.setSelectedItem(from + "->" + to);
             }
-            combo.setEnabled(true);
+            combProperties.setEnabled(true);
             updating = false;
             cards.show(properties, "edge");
         }
@@ -431,29 +486,7 @@ public class PanelGraph extends JPanel {
         tStroke.setText("");
         tStroke.setEditable(false);
         tStroke.setEnabled(false);
-        combo.setEnabled(false);
-    }
-
-    /**
-     *
-     * @param node If true, then looking for node name. Otherwise we are looking
-     * for name of edge
-     * @return
-     */
-    private String asignName() {
-        char startChar;
-        String name = "";
-        char c;
-        int temp = namesAsigned;
-        startChar = 'A';
-        for (int i = 0; i <= (namesAsigned / 26); i++) {
-            c = (char) (startChar + temp % 26);
-            name = c + name;
-            temp /= 26;
-        }
-        namesAsigned++;
-        return name;
-
+        combProperties.setEnabled(false);
     }
 
     private void setActions() {
@@ -502,7 +535,7 @@ public class PanelGraph extends JPanel {
             paintImmediately(0, 0, getWidth(), getHeight());
         });
 
-        combo.addItemListener((ItemEvent e) -> {
+        combProperties.addItemListener((ItemEvent e) -> {
             if (e.getStateChange() == ItemEvent.SELECTED && !updating) {
                 String selected = (String) e.getItem();
                 if (selected.equals("Bez orientace")) {
@@ -520,4 +553,10 @@ public class PanelGraph extends JPanel {
         });
 
     }
+    //</editor-fold>
+    //<editor-fold desc="Create Run options panel" defaultstate="collapsed">
+    private void setRunOptions(){
+        
+    }
+    //</editor-fold>
 }

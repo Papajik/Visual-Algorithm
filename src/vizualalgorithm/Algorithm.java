@@ -5,10 +5,16 @@
  */
 package vizualalgorithm;
 
+import java.util.Stack;
+
 /**
  *
  * @author Papi
  */
 public class Algorithm {
-    
+            Stack<Object[]> history = new Stack<>();
+            
+            public Algorithm(){
+           
+            }
 }

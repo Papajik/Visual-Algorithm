@@ -8,3 +8,9 @@ Edge
 https://www.iconfinder.com/icons/214643/line_minus_icon#size=32
 Run
 https://www.iconfinder.com/icons/1167975/launch_play_player_run_running_start_starting_icon#size=32
+Continue
+https://www.iconfinder.com/icons/326577/arrow_play_icon#size=32
+Pause
+https://www.iconfinder.com/icons/326574/pause_icon#size=32
+Stop
+https://www.iconfinder.com/icons/326597/stop_icon#size=32
