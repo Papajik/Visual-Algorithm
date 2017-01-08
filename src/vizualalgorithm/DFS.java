@@ -25,6 +25,8 @@ public class DFS implements Runnable {
     private Node last;
     private final Object lock;
     private boolean run = true;
+    private boolean first = true;
+    private boolean skip = false;
 
     public Object getLock() {
         return lock;
@@ -32,6 +34,10 @@ public class DFS implements Runnable {
 
     public void setRun(boolean x) {
         run = x;
+    }
+
+    public void setSkip(boolean x) {
+        skip = x;
     }
 
     public DFS(Algorithm alg) {
@@ -43,94 +49,109 @@ public class DFS implements Runnable {
 
     @Override
     public void run() {
-        finish = alg.getFinish();
-        if (finish != null) {
-            System.out.println("DFS: hledaný - " + finish.getName());
-        }
-        Node start = alg.getStart();
-        stack.add(start);
-        start.setVisited(true);
-        last = start;
-        while (!stack.isEmpty()) {
-            System.out.println("1: " + stack.size());
-            Node n = stack.pop();
-            last.setSelected(false);
-            n.setSelected(true);
-            if (n.equals(finish)) {
-                alg.write("Nalezen hledaný bod", n);
-                paintRightPath();
-                run = false;
-                return;
+        while (run) {
+
+            if (first) {
+                finish = alg.getFinish();
+                if (finish != null) {
+                    System.out.println("DFS: hledaný - " + finish.getName());
+                }
+                Node start = alg.getStart();
+                stack.add(start);
+                start.setVisited(true);
+                last = start;
+                first = false;
             }
-            Edge tempEdge = n.getPathBack();
-            if (tempEdge != null) {
-                System.out.println("Setting edge to truly visited");
-                tempEdge.setVisited(true);
+
+            while (!stack.isEmpty()) {
+                skip = false;
+                System.out.println("1: " + stack.size());
+                Node n = stack.pop();
+                last.setSelected(false);
+                n.setSelected(true);
+                if (n.equals(finish)) {
+                    alg.write("Nalezen hledaný bod", n);
+                    paintRightPath();
+                    run = false;
+                    return;
+                }
+                Edge tempEdge = n.getPathBack();
+                if (tempEdge != null) {
+                    System.out.println("Setting edge to truly visited");
+                    tempEdge.setVisited(true);
+                } else {
+                    System.out.println("2: " + stack.size());
+                    System.out.println("Nemělo by být");
+                }
+
+                last = n;
+                n.setStacked(false);
+                alg.write("Procházím bod", n);
+                // alg.repaint();
+                System.out.println("Procházím bod " + n);
+                delay();
+                ArrayList<Edge> edges = n.getOutcome();
+                for (Edge e : edges) {
+                    alg.repaint();
+
+                    if (e.getKnown()) {
+                        continue;
+                    }
+                    e.setKnown(true);
+                    System.out.println("Visited setted to true");
+
+                    Node act = e.getTo();
+                    if (!act.isVisited()) {
+                        System.out.println("Nalezena nová cesta přes " + e + " do " + act);
+                        act.setVisited(true);
+                        act.setStacked(true);
+                        act.addPathBack(e);
+                        stack.add(act);
+                        ;
+                    }
+                    act = e.getFrom();
+                    if (!act.isVisited()) {
+                        System.out.println("Nalezena nová cesta přes " + e + " do " + act);
+                        System.out.println("Act->");
+                        act.setVisited(true);
+                        act.setStacked(true);
+                        act.addPathBack(e);
+                        stack.add(act);
+                    }
+                    alg.repaint();
+                    delay();
+                    System.out.println(e + "->visited = false");
+                    delay();
+                }
+                System.out.println("3: " + stack.size());
+                n.setSelected(false);
+            }
+            if (finish == null) {
+                alg.write("Prošli jsme celý dostupný graf", null);
             } else {
-                System.out.println("2: " + stack.size());
-                System.out.println("Nemělo by být");
+                alg.write("Can't reach end of graph", null);
             }
-
-            last = n;
-            n.setStacked(false);
-            alg.write("Procházím bod", n);
-            // alg.repaint();
-            System.out.println("Procházím bod " + n);
-            checkPause();
-            ArrayList<Edge> edges = n.getOutcome();
-            for (Edge e : edges) {
-                alg.repaint();
-
-                if (e.getKnown()) {
-                    continue;
-                }
-                e.setKnown(true);
-                System.out.println("Visited setted to true");
-
-                Node act = e.getTo();
-                if (!act.isVisited()) {
-                    System.out.println("Nalezena nová cesta přes " + e + " do " + act);
-                    act.setVisited(true);
-                    act.setStacked(true);
-                    act.addPathBack(e);
-                    stack.add(act);
-                    ;
-                }
-                act = e.getFrom();
-                if (!act.isVisited()) {
-                    System.out.println("Nalezena nová cesta přes " + e + " do " + act);
-                    System.out.println("Act->");
-                    act.setVisited(true);
-                    act.setStacked(true);
-                    act.addPathBack(e);
-                    stack.add(act);
-                }
-                alg.repaint();
-                checkPause();
-                System.out.println(e + "->visited = false");
-                checkPause();
-            }
-            System.out.println("3: " + stack.size());
-            n.setSelected(false);
-        }
-        if (finish == null) {
-            alg.write("Prošli jsme celý dostupný graf", null);
-        } else {
-            alg.write("Can't reach end of graph", null);
-        }
-    }
-
-    private void checkPause() {
-        try {
-            sleep(500);
             if (!run) {
                 run = true;
                 System.out.println("Paused");
                 synchronized (lock) {
-                    lock.wait();
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
                 }
             }
+        }
+    }
+
+    private void delay() {
+        try {
+            if (!skip) {
+                sleep(500);
+            }
+
         } catch (InterruptedException ex) {
             Logger.getLogger(DFS.class
                     .getName()).log(Level.SEVERE, null, ex);

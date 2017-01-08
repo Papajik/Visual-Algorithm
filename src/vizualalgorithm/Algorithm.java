@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,7 +45,7 @@ public class Algorithm {
     private JComboBox combo;
     private Object lock;
     private DFS dfs = null;
-    //private BFS bfs = null;
+    private LinkedList<Object[]> history;
 
     public void setStart(Node n) {
         if (start != null) {
@@ -82,9 +83,16 @@ public class Algorithm {
     }
 
     public Algorithm(PanelGraph pg) {
-        this.pg = pg;
-        setRunOptions();
-        createRunBar();
+        try {
+            this.pg = pg;
+            history = new LinkedList<>();
+            Object[] original = {Loader.deepCopy(pg.getEdges()),pg.getNodes()};
+            history.add(original);
+            setRunOptions();
+            createRunBar();
+        } catch (Exception ex) {
+            Logger.getLogger(Algorithm.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void write(String t, Node n) {
@@ -293,10 +301,10 @@ public class Algorithm {
         runBar.add(jbRun);
         pg.add(runBar, BorderLayout.PAGE_START);
         jbNext.addActionListener((ActionEvent e) -> {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+          dfs.setSkip(true);
         });
         jbBack.addActionListener((ActionEvent e) -> {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+             pauseRunningThread();//dodělat
         });
         jbPause.addActionListener((ActionEvent e) -> {
             pauseRunningThread();
@@ -312,6 +320,9 @@ public class Algorithm {
         jbStop.addActionListener((ActionEvent e) -> {
             runBar.setVisible(false);
             pg.stopGenerating();
+            Object[] original = history.getFirst();
+            pg.setEdges((ArrayList<Edge> )original[0]);
+            pg.setNodes((ArrayList<Node> )original[1]);
 
         });
         jbRun.addActionListener((ActionEvent e) -> {

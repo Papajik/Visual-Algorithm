@@ -11,7 +11,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -20,7 +19,6 @@ import java.awt.geom.Line2D;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -56,8 +54,8 @@ public class PanelGraph extends JPanel {
      * Pro generátor jmen
      */
     private int namesAsigned = 0;
-    private final ArrayList<Node> nodes;
-    private final ArrayList<Edge> edges;
+    private ArrayList<Node> nodes;
+    private ArrayList<Edge> edges;
     JToolBar createBar;
     /**
      * Vlastnosti zobrazeného objektu
@@ -120,6 +118,14 @@ public class PanelGraph extends JPanel {
 
     public ArrayList<Edge> getEdges() {
         return edges;
+    }
+
+    public void setNodes(ArrayList<Node> nodes) {
+        this.nodes = nodes;
+    }
+
+    public void setEdges(ArrayList<Edge> edges) {
+        this.edges = edges;
     }
 
     public void stopGenerating() {

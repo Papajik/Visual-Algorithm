@@ -18,6 +18,7 @@ public class VizualAlgorithm {
     public static void main(String[] args) {
        win = new Window();
        win.setVisible();
+       
     }
     
 }
