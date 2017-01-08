@@ -56,6 +56,7 @@ public class PanelGraph extends JPanel {
     private int namesAsigned = 0;
     private ArrayList<Node> nodes;
     private ArrayList<Edge> edges;
+    //  private ArrayList<Object> nodesAndEdges;
     JToolBar createBar;
     /**
      * Vlastnosti zobrazeného objektu
@@ -90,6 +91,7 @@ public class PanelGraph extends JPanel {
 //        canvas = new JPanel();
 //        add(canvas, BorderLayout.CENTER);
 //        canvas.setBackground(Color.white);
+//        nodesAndEdges = new ArrayList<>();
         nodes = new ArrayList<>();
         edges = new ArrayList<>();
         changed = false;
@@ -112,6 +114,14 @@ public class PanelGraph extends JPanel {
         return selectedNode;
     }
 
+//    public ArrayList<Object> getEdgesAndNodes() {
+//        return nodesAndEdges;
+//    }
+//    
+//    public void setEdgesAndNodes(ArrayList<Object> s){
+//        nodesAndEdges = s;
+//    }
+//
     public ArrayList<Node> getNodes() {
         return nodes;
     }
@@ -135,6 +145,15 @@ public class PanelGraph extends JPanel {
         cards.show(rightPanel, "node");
 
     }
+    
+    public void deselectAll(){
+        for (Node n: nodes){
+            n.setSelected(false);
+        }
+        for (Edge e: edges){
+            e.setSelected(false);
+        }
+    }
 
     //Seting mouse listeners
     private void setMouse() {
@@ -147,11 +166,12 @@ public class PanelGraph extends JPanel {
                 if (chooser == 1) {
                     // System.out.println("Creating node");
                     Node n = createNode(e.getX(), e.getY());
+//                    nodesAndEdges.add(n);
                     nodes.add(n);
                 }
                 if (chooser == 2 && getNode(e.getX(), e.getY()) != null && getNode(e.getX(), e.getY()) != selectedNode) {
                     edges.add(new Edge(selectedNode, getNode(e.getX(), e.getY()), false, 1));
-
+//                    nodesAndEdges.add(new Edge(selectedNode, getNode(e.getX(), e.getY()), false, 1));
                 }
                 paintImmediately(0, 0, getWidth(), getHeight());
             }
@@ -218,6 +238,7 @@ public class PanelGraph extends JPanel {
                     Edge edge = createEdge(selectedNode, getNode(e.getX(), e.getY()), false, 1);
                     if (edge != null) {
                         edges.add(edge);
+//                        nodesAndEdges.add(edge);
                     }
 
                 }
@@ -274,19 +295,35 @@ public class PanelGraph extends JPanel {
      * @return
      */
     private String asignName() {
-        char startChar;
+        boolean unique = false;
         String name = "";
-        char c;
-        int temp = namesAsigned;
-        startChar = 'A';
-        for (int i = 0; i <= (namesAsigned / 26); i++) {
-            c = (char) (startChar + temp % 26);
-            name = c + name;
-            temp /= 26;
+        while (!unique) {
+            name = "";
+            char startChar;
+            char c;
+            int temp = namesAsigned;
+            startChar = 'A';
+            for (int i = 0; i <= (namesAsigned / 26); i++) {
+                c = (char) (startChar + temp % 26);
+                name = c + name;
+                temp /= 26;
+            }
+            namesAsigned++;
+            if (!nameExists(name)) {
+                unique = true;
+            }
         }
-        namesAsigned++;
-        return name;
 
+        return name;
+    }
+
+    private boolean nameExists(String s) {
+        for (Node n : nodes) {
+            if (n.getName().equalsIgnoreCase(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Edge createEdge(Node a, Node b, boolean oriented, int length) {
@@ -333,6 +370,16 @@ public class PanelGraph extends JPanel {
                 return ed;
             }
         }
+//        for (Object e : nodesAndEdges) {
+//            if (e instanceof Edge) {
+//                Edge ed = (Edge) e;
+//                System.out.println(ed.getFrom().getName() + ":" + ed.getTo().getName());
+//                line = new Line2D.Double(ed.getFrom().getX(), ed.getFrom().getY(), ed.getTo().getX(), ed.getTo().getY());
+//                if (line.intersects(x - hitSize / 2, y - hitSize / 2, hitSize, hitSize)) {
+//                    return ed;
+//                }
+//            }
+//        }
         return null;
     }
 //</editor-fold>
@@ -352,8 +399,17 @@ public class PanelGraph extends JPanel {
         nodes.stream().forEach((nod) -> {
             nod.paint(g);
         });
-
-        createBar.repaint();
+//        for (Object e : nodesAndEdges) {
+//            if (e instanceof Edge) {
+//                Edge ed = (Edge) e;
+//                ed.paint(g);
+//            }
+//            if (e instanceof Node) {
+//                Node nod = (Node) e;
+//                nod.paint(g);
+//            }
+//        }
+//        createBar.repaint();
     }
 
     public void paintLine(int x1, int y1, int x2, int y2) {
@@ -541,7 +597,12 @@ public class PanelGraph extends JPanel {
 
     private void setActions() {
         tName.addActionListener((ActionEvent e) -> {
-            selectedNode.setName(tName.getText());
+            if (!nameExists(tName.getText())) {
+                selectedNode.setName(tName.getText());
+            } else {
+                tName.setText(selectedNode.getName());
+            }
+
             paintImmediately(0, 0, getWidth(), getHeight());
         });
         tWide.addActionListener((ActionEvent e) -> {

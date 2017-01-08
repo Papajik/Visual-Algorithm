@@ -32,9 +32,11 @@ public class Window extends JFrame {
 
     JMenuBar menuBar;
     JMenu menuNew, menuLoad, menuSave, menuSettings;
-    JMenuItem itNewGraph, itNewTree, itNewField;
-    JMenuItem itLoadOfGraph, itLoadOfTree, itLoadOfField, itLoadDaGraph, itLoadDaTree, itLoadDaField;
-    JMenu LoadDatabase, LoadOffline;
+    JMenuItem itNewGraph;
+    //, itNewTree, itNewField;
+    JMenuItem itLoadOfGraph, itLoadDaGraph;
+    //itLoadOfTree, itLoadOfField, itLoadDaGraph, itLoadDaTree, itLoadDaField;
+    //JMenu LoadDatabase, LoadOffline;
     JMenuItem itSaveDatabase, itSaveOffline;
     JMenuItem itSetLanguage;
     JPanel cards;
@@ -56,8 +58,9 @@ public class Window extends JFrame {
         setMenuButtons();
         setSize(new Dimension(1366, 768));
     }
-    public void setVisible(){
-         setVisible(true);
+
+    public void setVisible() {
+        setVisible(true);
     }
 
     private void setMenu() {
@@ -69,30 +72,30 @@ public class Window extends JFrame {
         menuSettings = new JMenu("Nastavení");
 
         itNewGraph = new JMenuItem("Graf");
-        itNewTree = new JMenuItem("Strom");
-        itNewField = new JMenuItem("2D pole");
+//        itNewTree = new JMenuItem("Strom");
+//        itNewField = new JMenuItem("2D pole");
+//
+//        LoadDatabase = new JMenu("Z databáze");
+//        LoadOffline = new JMenu("Z počítače");
 
-        LoadDatabase = new JMenu("Z databáze");
-        LoadOffline = new JMenu("Z počítače");
-
-        itLoadOfField = new JMenuItem("2D pole");
+//        itLoadOfField = new JMenuItem("2D pole");
         itLoadOfGraph = new JMenuItem("Graf");
-        itLoadOfTree = new JMenuItem("Strom");
+//        itLoadOfTree = new JMenuItem("Strom");
 
-        itLoadDaField = new JMenuItem("2D pole");
+//        itLoadDaField = new JMenuItem("2D pole");
         itLoadDaGraph = new JMenuItem("Graf");
-        itLoadDaTree = new JMenuItem("Strom");
+//        itLoadDaTree = new JMenuItem("Strom");
 
         itSaveDatabase = new JMenuItem("Do databáze");
         itSaveOffline = new JMenuItem("Na disk");
 
-        itLoadOfField = new JMenuItem("2D pole");
-        itLoadOfGraph = new JMenuItem("Graf");
-        itLoadOfTree = new JMenuItem("Strom");
+//        itLoadOfField = new JMenuItem("2D pole");
+        itLoadOfGraph = new JMenuItem("Z počítače");
+//        itLoadOfTree = new JMenuItem("Strom");
 
-        itLoadDaField = new JMenuItem("2D pole");
-        itLoadDaGraph = new JMenuItem("Graf");
-        itLoadDaTree = new JMenuItem("Strom");
+//        itLoadDaField = new JMenuItem("2D pole");
+        itLoadDaGraph = new JMenuItem("Z databáze");
+//        itLoadDaTree = new JMenuItem("Strom");
 
         itSetLanguage = new JMenuItem("Jazyk");
 
@@ -102,19 +105,19 @@ public class Window extends JFrame {
         menuBar.add(menuSettings);
 
         menuNew.add(itNewGraph);
-        menuNew.add(itNewField);
-        menuNew.add(itNewTree);
+//        menuNew.add(itNewField);
+//        menuNew.add(itNewTree);
 
-        menuLoad.add(LoadOffline);
-        menuLoad.add(LoadDatabase);
-
-        LoadOffline.add(itLoadOfGraph);
-        LoadOffline.add(itLoadOfField);
-        LoadOffline.add(itLoadOfTree);
-
-        LoadDatabase.add(itLoadDaGraph);
-        LoadDatabase.add(itLoadDaField);
-        LoadDatabase.add(itLoadDaTree);
+//        menuLoad.add(LoadOffline);
+//        menuLoad.add(LoadDatabase);
+        menuLoad.add(itLoadOfGraph);
+//        LoadOffline.add(itLoadOfGraph);
+//        LoadOffline.add(itLoadOfField);
+//        LoadOffline.add(itLoadOfTree);
+        menuLoad.add(itLoadDaGraph);
+//        LoadDatabase.add(itLoadDaGraph);
+//        LoadDatabase.add(itLoadDaField);
+//        LoadDatabase.add(itLoadDaTree);
 
         menuSave.add(itSaveOffline);
         menuSave.add(itSaveDatabase);
@@ -148,21 +151,21 @@ public class Window extends JFrame {
             }
         });
 
-        itNewField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setPanel(2);
-                System.out.println("Field");
-            }
-        });
-
-        itNewTree.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setPanel(3);
-                System.out.println("Tree");
-            }
-        });
+//        itNewField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                setPanel(2);
+//                System.out.println("Field");
+//            }
+//        });
+//
+//        itNewTree.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                setPanel(3);
+//                System.out.println("Tree");
+//            }
+//        });
     }
 
     public void setPanel(int p) {
