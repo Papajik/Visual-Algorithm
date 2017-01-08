@@ -46,6 +46,14 @@ public class Edge implements Serializable {
     private int length;
     private int stroke = 5;
 
+    //barevná paleta
+    static Color colorSelect = Color.CYAN;
+    static Color colorString = Color.BLACK;
+    static Color colorDefault = Color.ORANGE;
+    static Color colorKnown = new Color(100, 238, 138);
+    static Color colorVisited = new Color(0, 102, 102);
+    static Color colorBestPath = new Color(63, 80, 254);
+
     public Edge(Node from, Node to, boolean oriented, int length) {
         this.from = from;
         this.to = to;
@@ -131,20 +139,20 @@ public class Edge implements Serializable {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (selected) {
-            g2.setColor(Color.CYAN);
+            g2.setColor(colorSelect);
         } else {
-            g2.setColor(Color.ORANGE);
+            g2.setColor(colorDefault);
         }
         if (known) {
-            g2.setColor(new Color(100, 238, 138));
+            g2.setColor(colorKnown);
 
         }
         if (visited) {
-            g2.setColor(new Color(0, 102, 102));
+            g2.setColor(colorVisited);
         }
 
         if (bestPath) {
-            g2.setColor(new Color(27, 30, 251));
+            g2.setColor(colorBestPath);
         }
         Stroke oldStroke = g2.getStroke();
         g2.setStroke(new BasicStroke(stroke));
@@ -156,7 +164,7 @@ public class Edge implements Serializable {
             drawArrow(g2, finish, start);
         }
         drawArrow(g2, start, finish);
-        g2.setColor(Color.BLACK);
+        g2.setColor(colorString);
         g2.setStroke(oldStroke);
         g2.drawString("" + length, (float) ((from.getX() + to.getX()) / 2), (float) ((from.getY() + to.getY()) / 2));
     }

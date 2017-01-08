@@ -20,7 +20,7 @@ import java.util.ArrayList;
  *
  * @author Papi
  */
-public class Node implements Serializable{
+public class Node implements Serializable {
 
     private double size = 40;
     private String name;
@@ -35,7 +35,7 @@ public class Node implements Serializable{
      * Odkaz na cestu zpět ro vykreslení nalezené cesty
      */
     Edge pathBack;
-   
+
     /**
      * Startovní bod
      */
@@ -52,8 +52,15 @@ public class Node implements Serializable{
      * Uložený v zásobníku
      */
     boolean stacked = false;
-    
-    
+
+    //barevná paleta
+    static Color colorDefault = Color.WHITE ;
+    static Color colorStart = new Color(240, 240, 0);
+    static Color colorFinish = new Color(255, 121, 77);
+    static Color colorVisited = new Color(82, 173, 114);
+    static Color colorStacked = new Color(100, 238, 138);
+    static Color colorSelected = Color.CYAN;
+    static Color colorString = Color.black;
 
     public Node(int x, int y, String name) {
         this.x = x;
@@ -133,14 +140,14 @@ public class Node implements Serializable{
     public void addOutcome(Edge e) {
         outcome.add(e);
     }
-    
-     public void addPathBack(Edge e){
+
+    public void addPathBack(Edge e) {
         pathBack = e;
     }
-     
-     public Edge getPathBack(){
-         return pathBack;
-     }
+
+    public Edge getPathBack() {
+        return pathBack;
+    }
 
     public Edge getEdgeTo(Node n) {
         for (Edge e : outcome) {
@@ -155,28 +162,28 @@ public class Node implements Serializable{
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Ellipse2D e = new Ellipse2D.Double(x - size / 2, y - size / 2, size, size);
-        g2.setColor(Color.WHITE);
+        g2.setColor(colorDefault);
 
         if (start) {
-            g2.setColor(new Color(240, 240, 0));
+            g2.setColor(colorStart);
         }
         if (finish) {
-            g2.setColor(new Color(255, 121, 77));
+            g2.setColor(colorFinish);
         }
         if (visited) {
-            g2.setColor(new Color(82, 173, 114));
+            g2.setColor(colorVisited);
         }
 
         if (stacked) {
-            g2.setColor(new Color(100, 238, 138));
+            g2.setColor(colorStacked);
         }
         if (selected) {
-            g2.setColor(Color.CYAN);
+            g2.setColor(colorSelected);
         }
 
         Stroke oldStroke = g2.getStroke();
         g2.fill(e);
-        g2.setColor(Color.black);
+        g2.setColor(colorString);
         g2.setStroke(new BasicStroke(3));
         g2.draw(e);
         g2.setStroke(oldStroke);

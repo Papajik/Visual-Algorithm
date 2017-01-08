@@ -7,6 +7,7 @@ package vizualalgorithm;
 
 import static java.lang.Thread.sleep;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +21,7 @@ public class DFS implements Runnable {
     private Stack<Object[]> history;
     private Algorithm alg;
     private Node finish;
-    private Stack<Node> stack;
+    private LinkedList<Node> stack;
     private Node last;
     private final Object lock;
     private boolean run = true;
@@ -35,7 +36,7 @@ public class DFS implements Runnable {
 
     public DFS(Algorithm alg) {
         this.alg = alg;
-        stack = new Stack<>();
+        stack = new LinkedList<>();
         alg.load();
         lock = new Object();
     }
@@ -92,7 +93,7 @@ public class DFS implements Runnable {
                     act.setVisited(true);
                     act.setStacked(true);
                     act.addPathBack(e);
-                    stack.push(act);
+                    stack.add(act);
                     ;
                 }
                 act = e.getFrom();
@@ -102,7 +103,7 @@ public class DFS implements Runnable {
                     act.setVisited(true);
                     act.setStacked(true);
                     act.addPathBack(e);
-                    stack.push(act);
+                    stack.add(act);
                 }
                 alg.repaint();
                 checkPause();
