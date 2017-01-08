@@ -6,23 +6,16 @@
 package vizualalgorithm;
 
 import java.awt.CardLayout;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
+import java.io.File;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JToolBar;
 
 /**
  *
@@ -141,16 +134,52 @@ public class Window extends JFrame {
 
     private void setMenuButtons() {
 
-        itNewGraph.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cards.remove(panelGraph);
-                cards.add(new PanelGraph(), "graph");
-                setPanel(1);
-                System.out.println("Graph");
+        itNewGraph.addActionListener((ActionEvent e) -> {
+            cards.remove(panelGraph);
+            panelGraph = new PanelGraph();
+            cards.add(panelGraph, "graph");
+            setPanel(1);
+            System.out.println("Graph");
+        });
+
+        itLoadOfGraph.addActionListener((ActionEvent e) -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setCurrentDirectory(new File(new File("").getAbsolutePath() + "\\src\\Saves\\"));
+
+            int result = chooser.showOpenDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                String file = chooser.getSelectedFile().getName();
+                String path = chooser.getCurrentDirectory().toString();
+                Loader.loadGraph(panelGraph, path + "\\" + file);
+                panelGraph.repaint();
             }
         });
 
+        itSaveOffline.addActionListener((ActionEvent e) -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setCurrentDirectory(new File(new File("").getAbsolutePath() + "\\src\\Saves\\"));
+            int result = chooser.showSaveDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                String file = chooser.getSelectedFile().getName();
+                String path = chooser.getCurrentDirectory().toString();
+                Loader.saveGraph(panelGraph, path + "\\" + file);
+            }
+        });
+
+        itLoadDaGraph.addActionListener((ActionEvent e) -> {
+            DatabaseConnector con = new DatabaseConnector();
+            boolean choosed = con.load();
+            if (choosed) {
+                panelGraph.setNodes(con.getNodes());
+                panelGraph.setEdges(con.getEdges());
+            }
+        });
+
+        itSaveDatabase.addActionListener((ActionEvent e) -> {
+            DatabaseConnector con = new DatabaseConnector();
+            con.save(panelGraph.getNodes(), panelGraph.getEdges());
+
+        });
 //        itNewField.addActionListener(new ActionListener() {
 //            @Override
 //            public void actionPerformed(ActionEvent e) {
