@@ -95,7 +95,6 @@ public class Algorithm {
     public void write(String t, Node n) {
         output.setText(t);
         updateNode(n);
-        //pg.getRightPanel().repaint();
 
     }
 
@@ -165,6 +164,9 @@ public class Algorithm {
         repaint();
     }
 
+    /**
+     * Nastaví postraní panel ukazující aktuální informace
+     */
     private void setRunOptions() {
         JPanel options = new JPanel();
         options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
@@ -290,6 +292,9 @@ public class Algorithm {
         name.setText(n.getName());
     }
 
+    /**
+     * Vytvoří JtoolBar pro ovládání programu během běhu algoritmu
+     */
     private void createRunBar() {
         runBar = new JToolBar("Průběh algoritmu");
         JButton jbStart = new JButton("Na začátek");
@@ -378,8 +383,8 @@ public class Algorithm {
             repaint();
         });
         jbRun.addActionListener((ActionEvent e) -> {
-            if (start != null && history.size()==1) {
-                    start(combo.getSelectedItem().toString());
+            if (start != null && history.size() == 1) {
+                start(combo.getSelectedItem().toString());
             }
         });
     }
@@ -453,39 +458,6 @@ public class Algorithm {
         } catch (Exception ex) {
             Logger.getLogger(Algorithm.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
 
-//    private void algoritmus() {
-//        while (!zbyvajiciBody.isEmpty()) {
-//            int minimum = Integer.MAX_VALUE;
-//            int index = 0;
-//            for (Hrana hrana : seznamHran) {
-//                if (hrana.getVaha() < minimum && ((prosleBody.contains(hrana.getDruhy()) && !prosleBody.contains(hrana.getPrvni())) || (!prosleBody.contains(hrana.getDruhy()) && prosleBody.contains(hrana.getPrvni())))) {
-//                    minimum = hrana.getVaha();
-//                    index = seznamHran.indexOf(hrana);
-//                }
-//            }
-//            pouziteHrany.add(seznamHr   an.get(index)
-//            );
-//            System.out.print(seznamHran.get(index).getPrvni().name);
-//            System.out.print(seznamHran.get(index).getDruhy().name + " ");
-//            System.out.println(seznamHran.get(index).getVaha());
-//            if (!prosleBody.contains(seznamHran.get(index).getPrvni())) {
-//                prosleBody.add(seznamHran.get(index).getPrvni());
-//                zbyvajiciBody.remove(seznamHran.get(index).getPrvni());
-//            }
-//            if (!prosleBody.contains(seznamHran.get(index).getDruhy())) {
-//                prosleBody.add(seznamHran.get(index).getDruhy());
-//                zbyvajiciBody.remove(seznamHran.get(index).getDruhy());
-//            }
-//            seznamHran.remove(seznamHran.get(index));
-//
-//        }
-//
-//        System.out.println("-----");
-//        for (Hrana hrana : pouziteHrany) {
-//            hrana.vypisHrana();
-//        }
-//
-//    }
+    }
 }

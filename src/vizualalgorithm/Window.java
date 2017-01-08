@@ -10,6 +10,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -26,17 +27,11 @@ public class Window extends JFrame {
     JMenuBar menuBar;
     JMenu menuNew, menuLoad, menuSave, menuSettings;
     JMenuItem itNewGraph;
-    //, itNewTree, itNewField;
     JMenuItem itLoadOfGraph, itLoadDaGraph;
-    //itLoadOfTree, itLoadOfField, itLoadDaGraph, itLoadDaTree, itLoadDaField;
-    //JMenu LoadDatabase, LoadOffline;
     JMenuItem itSaveDatabase, itSaveOffline;
     JMenuItem itSetLanguage;
     JPanel cards;
-    PanelTree panelTree;
     PanelGraph panelGraph;
-    Panel2DField panelField;
-    PanelChooser panelChooser;
 
     public Window() {
         setWindow();
@@ -65,30 +60,12 @@ public class Window extends JFrame {
         menuSettings = new JMenu("Nastavení");
 
         itNewGraph = new JMenuItem("Graf");
-//        itNewTree = new JMenuItem("Strom");
-//        itNewField = new JMenuItem("2D pole");
-//
-//        LoadDatabase = new JMenu("Z databáze");
-//        LoadOffline = new JMenu("Z počítače");
-
-//        itLoadOfField = new JMenuItem("2D pole");
         itLoadOfGraph = new JMenuItem("Graf");
-//        itLoadOfTree = new JMenuItem("Strom");
-
-//        itLoadDaField = new JMenuItem("2D pole");
         itLoadDaGraph = new JMenuItem("Graf");
-//        itLoadDaTree = new JMenuItem("Strom");
-
         itSaveDatabase = new JMenuItem("Do databáze");
         itSaveOffline = new JMenuItem("Na disk");
-
-//        itLoadOfField = new JMenuItem("2D pole");
         itLoadOfGraph = new JMenuItem("Z počítače");
-//        itLoadOfTree = new JMenuItem("Strom");
-
-//        itLoadDaField = new JMenuItem("2D pole");
         itLoadDaGraph = new JMenuItem("Z databáze");
-//        itLoadDaTree = new JMenuItem("Strom");
 
         itSetLanguage = new JMenuItem("Jazyk");
 
@@ -98,19 +75,8 @@ public class Window extends JFrame {
         menuBar.add(menuSettings);
 
         menuNew.add(itNewGraph);
-//        menuNew.add(itNewField);
-//        menuNew.add(itNewTree);
-
-//        menuLoad.add(LoadOffline);
-//        menuLoad.add(LoadDatabase);
         menuLoad.add(itLoadOfGraph);
-//        LoadOffline.add(itLoadOfGraph);
-//        LoadOffline.add(itLoadOfField);
-//        LoadOffline.add(itLoadOfTree);
         menuLoad.add(itLoadDaGraph);
-//        LoadDatabase.add(itLoadDaGraph);
-//        LoadDatabase.add(itLoadDaField);
-//        LoadDatabase.add(itLoadDaTree);
 
         menuSave.add(itSaveOffline);
         menuSave.add(itSaveDatabase);
@@ -121,14 +87,8 @@ public class Window extends JFrame {
         Container pane = getContentPane();
         cards = new JPanel(new CardLayout());
         pane.add(cards);
-        panelField = new Panel2DField();
-        panelTree = new PanelTree();
         panelGraph = new PanelGraph();
-        panelChooser = new PanelChooser(this);
-        cards.add(panelChooser, "chooser");
         cards.add(panelGraph, "graph");
-        cards.add(panelTree, "tree");
-        cards.add(panelField, "field");
 
     }
 
@@ -167,7 +127,7 @@ public class Window extends JFrame {
         });
 
         itLoadDaGraph.addActionListener((ActionEvent e) -> {
-            DatabaseConnector con = new DatabaseConnector();
+            DatabaseConnector con = new DatabaseConnector(this);
             boolean choosed = con.load();
             if (choosed) {
                 panelGraph.setNodes(con.getNodes());
@@ -176,25 +136,20 @@ public class Window extends JFrame {
         });
 
         itSaveDatabase.addActionListener((ActionEvent e) -> {
-            DatabaseConnector con = new DatabaseConnector();
+            DatabaseConnector con = new DatabaseConnector(this);
             con.save(panelGraph.getNodes(), panelGraph.getEdges());
 
         });
-//        itNewField.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                setPanel(2);
-//                System.out.println("Field");
-//            }
-//        });
-//
-//        itNewTree.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                setPanel(3);
-//                System.out.println("Tree");
-//            }
-//        });
+    }
+
+    public void setGraph(ArrayList<Node> nodes, ArrayList<Edge> edges) {
+        cards.remove(panelGraph);
+        panelGraph = new PanelGraph();
+        cards.add(panelGraph, "graph");
+        panelGraph.setNodes(nodes);
+        panelGraph.setEdges(edges);
+        panelGraph.paintComponent();
+        setPanel(1);
     }
 
     public void setPanel(int p) {
@@ -204,12 +159,6 @@ public class Window extends JFrame {
                 cardLayout.show(cards, "graph");
                 break;
             case 2:
-                cardLayout.show(cards, "field");
-                break;
-            case 3:
-                cardLayout.show(cards, "tree");
-                break;
-
         }
     }
 

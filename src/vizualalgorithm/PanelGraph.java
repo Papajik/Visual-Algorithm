@@ -56,7 +56,6 @@ public class PanelGraph extends JPanel {
     private int namesAsigned = 0;
     private ArrayList<Node> nodes;
     private ArrayList<Edge> edges;
-    //  private ArrayList<Object> nodesAndEdges;
     JToolBar createBar;
     /**
      * Vlastnosti zobrazeného objektu
@@ -88,10 +87,6 @@ public class PanelGraph extends JPanel {
 
     public PanelGraph() {
         super(new BorderLayout());
-//        canvas = new JPanel();
-//        add(canvas, BorderLayout.CENTER);
-//        canvas.setBackground(Color.white);
-//        nodesAndEdges = new ArrayList<>();
         nodes = new ArrayList<>();
         edges = new ArrayList<>();
         changed = false;
@@ -113,15 +108,6 @@ public class PanelGraph extends JPanel {
     public Node getSelectedNode() {
         return selectedNode;
     }
-
-//    public ArrayList<Object> getEdgesAndNodes() {
-//        return nodesAndEdges;
-//    }
-//    
-//    public void setEdgesAndNodes(ArrayList<Object> s){
-//        nodesAndEdges = s;
-//    }
-//
     public ArrayList<Node> getNodes() {
         return nodes;
     }
@@ -399,17 +385,6 @@ public class PanelGraph extends JPanel {
         nodes.stream().forEach((nod) -> {
             nod.paint(g);
         });
-//        for (Object e : nodesAndEdges) {
-//            if (e instanceof Edge) {
-//                Edge ed = (Edge) e;
-//                ed.paint(g);
-//            }
-//            if (e instanceof Node) {
-//                Node nod = (Node) e;
-//                nod.paint(g);
-//            }
-//        }
-//        createBar.repaint();
     }
 
     public void paintLine(int x1, int y1, int x2, int y2) {

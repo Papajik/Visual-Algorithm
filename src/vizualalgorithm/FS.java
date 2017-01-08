@@ -5,7 +5,6 @@
  */
 package vizualalgorithm;
 
-import static java.lang.Thread.sleep;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Stack;
@@ -42,12 +41,6 @@ public class FS implements Runnable {
         return stack;
     }
 
-//    public void setQueue(LinkedList<Node> queue) {
-//        this.queue = queue;
-//    }
-//    public void setStack(Stack<Node> stack) {
-//        this.stack = stack;
-//    }
     public Object getLock() {
         return lock;
     }

@@ -36,7 +36,8 @@ import javax.swing.ListSelectionModel;
  */
 public class DatabaseConnector extends JFrame {
 
-    private JList<String> jlSave_List, jlLoad_List;
+    private Window win;
+    private JList<String> jlLoad_List;
     private DefaultListModel<String> dlLoad_List;
     private JPanel cards, loader, saver;
     private JButton loaderLoad, loaderCancel;
@@ -47,7 +48,8 @@ public class DatabaseConnector extends JFrame {
     private ArrayList<Node> nodes;
     private ArrayList<Edge> edges;
 
-    public DatabaseConnector() {
+    public DatabaseConnector(Window win) {
+        this.win = win;
         Container pane = getContentPane();
         cards = new JPanel(new CardLayout());
         saver = new JPanel();
@@ -79,7 +81,10 @@ public class DatabaseConnector extends JFrame {
             rs = st.executeQuery(query);
             ArrayList<String> graphNames = new ArrayList<String>();
             while (rs.next()) {
-                System.out.println(rs.getString(1));
+                graphNames.add(rs.getString(1));
+            }
+            for (String s : graphNames) {
+                dlLoad_List.addElement(s);
             }
             return false;
         } catch (SQLException ex) {
@@ -92,7 +97,7 @@ public class DatabaseConnector extends JFrame {
         ScrollPane spLoad_List = new ScrollPane();
         dlLoad_List = new DefaultListModel<>();
         jlLoad_List = new JList<>(dlLoad_List);
-     
+
         jlLoad_List.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         spLoad_List.add(jlLoad_List);
 
@@ -102,9 +107,10 @@ public class DatabaseConnector extends JFrame {
         loaderCancel = new JButton("Zrušit");
         buttons.add(loaderLoad);
         buttons.add(loaderCancel);
-        loader.add(jlLoad_List);
+        loader.add(spLoad_List);
         loader.add(buttons);
-
+        load();
+        pack();
     }
 
     public void save(ArrayList<Node> nodes, ArrayList<Edge> edges) {
@@ -151,7 +157,6 @@ public class DatabaseConnector extends JFrame {
                     if (saveName.getText().equals("")) {
                         return;
                     }
-                    //select zadane_jmeno from jmena_grafu
 
                     String query = "INSERT INTO jmena_grafu (id, zadane_jmeno,pridelene_jmeno) VALUES (null,\"" + saveName.getText() + "\",\"" + nodesCount + ":" + edgesCount + "\")";
                     st.executeQuery(query);
@@ -186,6 +191,90 @@ public class DatabaseConnector extends JFrame {
                     Logger.getLogger(DatabaseConnector.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+        });
+
+        loaderCancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                return;
+            }
+
+        });
+
+        loaderLoad.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (jlLoad_List.getSelectedValue() != null) {
+                    try {
+                        String graphName = jlLoad_List.getSelectedValue();
+                        String query = "select id from jmena_grafu where zadane_jmeno = \"" + graphName + "\"";
+
+                        rs = st.executeQuery(query);
+                        int graphID = -1;
+                        if (rs.next()) {
+                            graphID = Integer.parseInt(rs.getString(1));
+                        }
+                        ArrayList<Integer> nodeID = new ArrayList<>();
+                        ArrayList<Integer> nodeXPos = new ArrayList<>();
+                        ArrayList<Integer> nodeYPos = new ArrayList<>();
+                        ArrayList<String> nodeNames = new ArrayList<>();
+
+                        query = "select * from node where graf_id =" + graphID;
+                        rs = st.executeQuery(query);
+
+                        while (rs.next()) {
+                            nodeID.add(Integer.parseInt(rs.getString(1)));
+                            nodeXPos.add(Integer.parseInt(rs.getString(3)));
+                            nodeYPos.add(Integer.parseInt(rs.getString(4)));
+                            nodeNames.add(rs.getString(5));
+                        }
+                        ArrayList<Node> nodes = new ArrayList<>();
+
+                        for (int i = 0; i < nodeID.size(); i++) {
+                            nodes.add(new Node(nodeXPos.get(i), nodeYPos.get(i), nodeNames.get(i)));
+                        }
+
+                        query = "select edge.from_id, edge.to_id, edge.oriented, edge.length from edge "
+                                + "inner join node on edge.from_id =node.ID "
+                                + "inner join jmena_grafu on jmena_grafu.id = node.graf_id "
+                                + "where node.graf_id =" + graphID;
+                        rs = st.executeQuery(query);
+                        ArrayList<Edge> edges = new ArrayList<>();
+                        while (rs.next()) {
+                            System.out.println("------------");
+                            int fromID = Integer.parseInt(rs.getString(1));
+                            System.out.println(fromID);
+                            int toID = Integer.parseInt(rs.getString(2));
+                            System.out.println(toID);
+                            boolean oriented = Boolean.parseBoolean(rs.getString(3));
+                            System.out.println(oriented);
+                            int length = Integer.parseInt(rs.getString(4));
+                            System.out.println(length);
+                            Node from = null;
+                            Node to = null;
+                            for (int i = 0; i < nodeID.size(); i++) {
+                                if (fromID == nodeID.get(i)) {
+
+                                    from = nodes.get(i);
+                                    System.out.println(from.getName());
+                                }
+                                if (toID == nodeID.get(i)) {
+                                    to = nodes.get(i);
+                                    System.out.println(to.getName());
+                                }
+
+                            }
+                            edges.add(new Edge(from, to, oriented, length));
+                        }
+                        System.out.println(edges.size());
+                        win.setGraph(nodes, edges);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(DatabaseConnector.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                }
+            }
+
         });
     }
 
