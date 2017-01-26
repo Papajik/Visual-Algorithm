@@ -9,24 +9,24 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import static java.awt.Component.LEFT_ALIGNMENT;
+import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.border.BevelBorder;
@@ -39,13 +39,14 @@ public class Algorithm {
 
     private Node start;
     private Node finish;
-    private PanelGraph pg;
+    private final PanelGraph pg;
     private JToolBar runBar;
     private JTextField output, name, step;
     private JComboBox combo;
     private Object lock;
     private FS fs = null;
-    private Stack<Object> history;
+    private Dijkstra dij = null;
+    private final Stack<Object> history;
     private int historyPoint = 0;
 
     public void setStart(Node n) {
@@ -94,7 +95,7 @@ public class Algorithm {
 
     public void write(String t, Node n) {
         output.setText(t);
-        updateNode(n);
+        updateNodeName(n);
 
     }
 
@@ -102,6 +103,9 @@ public class Algorithm {
         pg.paintImmediately(0, 0, pg.getWidth(), pg.getHeight());
     }
 
+    /**
+     * Načte a zinicializuje graf pro následné prohledávání
+     */
     public void load() {
 
         ArrayList<Edge> edges = pg.getEdges();
@@ -123,6 +127,11 @@ public class Algorithm {
         }
     }
 
+    /**
+     * Spustí algoritmus prohledávání podle zadaného typu
+     *
+     * @param choice
+     */
     public void start(String choice) {
         switch (choice) {
             case "Prohledávání do hloubky":
@@ -146,6 +155,64 @@ public class Algorithm {
                     break;
                 }
             }
+            case "Dijkstrův algoritmus": {
+                if (lock == null) {
+                    pg.deselectAll();
+                    pg.setDijkstra(true);
+                    dij = new Dijkstra(this);
+                    lock = dij.getLock();
+                    System.out.println("Spouštím vlákno");
+                    new Thread(dij).start();
+                    System.out.println("Opouštím vlákno");
+                }
+                break;
+            }
+            case "MultiThread prohledávání do šířky": {
+                JFrame question = new JFrame("Počet jader");
+                question.setLocationRelativeTo(null);
+                Container con = question.getContentPane();
+                JPanel panel = new JPanel();
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+                JLabel label = new JLabel("Zadejte počet vláken procesoru");
+                panel.add(label);
+                JTextField text = new JTextField();
+                text.setMaximumSize(label.getMaximumSize());
+                text.setAlignmentX(Component.LEFT_ALIGNMENT);
+                panel.add(text);
+                JPanel buttons = new JPanel();
+                buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+                JButton ok = new JButton("Ok");
+                JButton cancel = new JButton("Cancel");
+                buttons.add(ok);
+                buttons.add(cancel);
+                buttons.setAlignmentX(Component.LEFT_ALIGNMENT);
+                panel.add(buttons);
+                con.add(panel);
+                question.pack();
+                question.setVisible(true);
+
+                ok.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        int threads = 0;
+                        try {
+                            threads = Integer.parseInt(text.getText());
+                            MultiThreading mt = new MultiThreading(threads, start, finish);
+                        } catch (NumberFormatException ex) {
+                            text.setText("");
+                        }
+                        question.setVisible(false);
+                    }
+                });
+
+                cancel.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        question.setVisible(false);
+                    }
+                });
+                break;
+            }
         }
     }
 
@@ -154,12 +221,21 @@ public class Algorithm {
             System.out.println("SETING PAUSE");
             fs.setRun(false);
         }
+        if (dij != null) {
+            System.out.println("SETING PAUSE - dij");
+            dij.setRun(false);
+        }
     }
 
-    public void threadStoped() {
+    /**
+     * Pokud vlákno skončí, zavolá se tato metoda, která vyklidí proměnné pro
+     * další spuštění algoritmu
+     */
+    public void threadStopped() {
         System.out.println("Thread is stopped");
         lock = null;
         fs = null;
+        dij = null;
         historyPoint = history.size() - 1;
         repaint();
     }
@@ -284,7 +360,12 @@ public class Algorithm {
         });
     }
 
-    public void updateNode(Node n) {
+    /**
+     * Upraví zobrazované jméno v postraním panelu
+     *
+     * @param n
+     */
+    public void updateNodeName(Node n) {
         if (n == null) {
             name.setText("");
             return;
@@ -315,6 +396,8 @@ public class Algorithm {
         combo = new JComboBox();
         combo.addItem("Prohledávání do hloubky");
         combo.addItem("Prohledávání do šířky");
+        combo.addItem("Dijkstrův algoritmus");
+        combo.addItem("MultiThread prohledávání do šířky");
         combo.setMaximumSize(combo.getPreferredSize());
         combo.setAlignmentX(LEFT_ALIGNMENT);
         jbStart.setPreferredSize(jbBack.getPreferredSize());
@@ -337,14 +420,14 @@ public class Algorithm {
         runBar.add(jbRun);
         pg.add(runBar, BorderLayout.PAGE_START);
         jbStart.addActionListener((ActionEvent e) -> {
-            if (fs == null && history.size() >= 2) {
+            if (stopped() && history.size() >= 2) {
                 historyPoint = 1;
                 retrieveHistory(historyPoint);
                 step.setText(historyPoint + "/" + (history.size() - 1));
             }
         });
         jbNext.addActionListener((ActionEvent e) -> {
-            if (fs == null) {
+            if (stopped()) {
                 if (historyPoint < history.size() - 1) {
                     historyPoint++;
                     retrieveHistory(historyPoint);
@@ -353,7 +436,7 @@ public class Algorithm {
             }
         });
         jbBack.addActionListener((ActionEvent e) -> {
-            if (fs == null) {
+            if (stopped()) {
                 if (historyPoint > 1) {
                     historyPoint--;
                     retrieveHistory(historyPoint);
@@ -370,7 +453,13 @@ public class Algorithm {
                 synchronized (lock) {
                     lock.notifyAll();
                 }
-                fs.setRun(true);
+                if (fs != null) {
+                    fs.setRun(true);
+                }
+                if (dij != null) {
+                    dij.setRun(true);
+                }
+
             }
         });
         jbStop.addActionListener((ActionEvent e) -> {
@@ -387,6 +476,10 @@ public class Algorithm {
                 start(combo.getSelectedItem().toString());
             }
         });
+    }
+
+    private boolean stopped() {
+        return (fs == null && dij == null);
     }
 
     /**
@@ -438,26 +531,5 @@ public class Algorithm {
         } catch (Exception ex) {
             Logger.getLogger(Algorithm.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    private void retrieveOriginal() {
-        try {
-            while (history.size() > 1) {
-                history.pop();
-            }
-            System.out.println("Retrieving original");
-            System.out.println(history.size());
-            ArrayList<Object> original = (ArrayList<Object>) Loader.deepCopy(history.get(0));
-
-            ArrayList<Edge> edges = (ArrayList< Edge>) original.get(0);
-            ArrayList<Node> nodes = (ArrayList< Node>) original.get(1);
-            pg.setEdges(edges);
-            pg.setNodes(nodes);
-            System.out.println(history.size());
-            repaint();
-        } catch (Exception ex) {
-            Logger.getLogger(Algorithm.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
     }
 }
