@@ -35,9 +35,14 @@ import javax.swing.border.BevelBorder;
  *
  * @author Papi
  */
-public class Algorithm {
-
+public class AlgorithmPanel {
+/**
+ * Startovní bod algoritmu
+ */
     private Node start;
+    /**
+     * Cílový bod algoritmu
+     */
     private Node finish;
     private final PanelGraph pg;
     private JToolBar runBar;
@@ -48,7 +53,10 @@ public class Algorithm {
     private Dijkstra dij = null;
     private final Stack<Object> history;
     private int historyPoint = 0;
-
+/**
+ * Nastaví startovní bod algoritmu, pokud je již nastavený jiný bod, je tento bod 
+ * @param n 
+ */
     public void setStart(Node n) {
         if (start != null) {
             start.setStart(false);
@@ -84,7 +92,7 @@ public class Algorithm {
         return finish;
     }
 
-    public Algorithm(PanelGraph pg) {
+    public AlgorithmPanel(PanelGraph pg) {
         this.pg = pg;
         history = new Stack<>();
         setHistoryPoint();
@@ -96,7 +104,6 @@ public class Algorithm {
     public void write(String t, Node n) {
         output.setText(t);
         updateNodeName(n);
-
     }
 
     public void repaint() {
@@ -110,18 +117,15 @@ public class Algorithm {
 
         ArrayList<Edge> edges = pg.getEdges();
         ArrayList<Node> nodes = pg.getNodes();
-        System.out.println("Algoritmy Načítání ");
         for (Node n : nodes) {
             n.initialize();
             for (Edge e : edges) {
                 if (e.isOriented()) {
                     if (e.getFrom().equals(n)) {
                         n.addOutcome(e);
-                        System.out.println("DFS: adding " + e + " to " + n);
                     }
                 } else if (e.getFrom().equals(n) || e.getTo().equals(n)) {
                     n.addOutcome(e);
-                    System.out.println("DFS: adding " + e + " to " + n);
                 }
             }
         }
@@ -140,15 +144,15 @@ public class Algorithm {
                     pg.deselectAll();
                     fs = new FS(this, false);
                     lock = fs.getLock();
-                    System.out.println("Spouštím vlákno");
                     new Thread(fs).start();
-                    System.out.println("Opouštím vlákno");
                 }
 
                 break;
             case "Prohledávání do šířky": {
                 if (lock == null) {
                     pg.deselectAll();
+                    
+                    
                     fs = new FS(this, true);
                     lock = fs.getLock();
                     new Thread(fs).start();
@@ -161,9 +165,7 @@ public class Algorithm {
                     pg.setDijkstra(true);
                     dij = new Dijkstra(this);
                     lock = dij.getLock();
-                    System.out.println("Spouštím vlákno");
                     new Thread(dij).start();
-                    System.out.println("Opouštím vlákno");
                 }
                 break;
             }
@@ -215,14 +217,14 @@ public class Algorithm {
             }
         }
     }
-
+/**
+ * Pozastavení běžícího vlákna
+ */
     public void pauseRunningThread() {
         if (fs != null) {
-            System.out.println("SETING PAUSE");
             fs.setRun(false);
         }
         if (dij != null) {
-            System.out.println("SETING PAUSE - dij");
             dij.setRun(false);
         }
     }
@@ -232,7 +234,6 @@ public class Algorithm {
      * další spuštění algoritmu
      */
     public void threadStopped() {
-        System.out.println("Thread is stopped");
         lock = null;
         fs = null;
         dij = null;
@@ -420,14 +421,14 @@ public class Algorithm {
         runBar.add(jbRun);
         pg.add(runBar, BorderLayout.PAGE_START);
         jbStart.addActionListener((ActionEvent e) -> {
-            if (stopped() && history.size() >= 2) {
+            if (isStopped() && history.size() >= 2) {
                 historyPoint = 1;
                 retrieveHistory(historyPoint);
                 step.setText(historyPoint + "/" + (history.size() - 1));
             }
         });
         jbNext.addActionListener((ActionEvent e) -> {
-            if (stopped()) {
+            if (isStopped()) {
                 if (historyPoint < history.size() - 1) {
                     historyPoint++;
                     retrieveHistory(historyPoint);
@@ -436,7 +437,7 @@ public class Algorithm {
             }
         });
         jbBack.addActionListener((ActionEvent e) -> {
-            if (stopped()) {
+            if (isStopped()) {
                 if (historyPoint > 1) {
                     historyPoint--;
                     retrieveHistory(historyPoint);
@@ -477,31 +478,17 @@ public class Algorithm {
             }
         });
     }
-
-    private boolean stopped() {
+/**
+ * Zkontroluje stav vláken. True, pokud nějaké již běží
+ * @return 
+ */
+    private boolean isStopped() {
         return (fs == null && dij == null);
     }
 
-    /**
-     * Najde prvek ekvivalentní v tomu používaném v některém z předchozích kroků
-     * Nalezne ho podle stejného jména (V programu je nemožné, aby dva body měli
-     * stejné jméno)
-     *
-     * @param n
-     */
-    private Node getEqualsInCurrent(Node n) {
-        if (n == null) {
-            return null;
-        }
-        ArrayList<Node> nodes = pg.getNodes();
-        for (Node nod : nodes) {
-            if (n.getName().equalsIgnoreCase(nod.getName())) {
-                return nod;
-            }
-        }
-        return null;
-    }
-
+/**
+ * Nastaví bod historie v procházení grafu
+ */
     public void setHistoryPoint() {
         try {
             ArrayList<Edge> edges = pg.getEdges();
@@ -509,15 +496,16 @@ public class Algorithm {
             ArrayList<Object> ob = new ArrayList<>();
             ob.add(edges);
             ob.add(nodes);
-            System.out.println("Vkládám do historie");
             ArrayList<Object> original = (ArrayList<Object>) Loader.deepCopy(ob);
             history.add(original);
-            System.out.println("Size = " + history.size());
         } catch (Exception ex) {
-            Logger.getLogger(Algorithm.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AlgorithmPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+/**
+ * Načte bod historie z procházeného grafu
+ * @param historyPoint 
+ */
     private void retrieveHistory(int historyPoint) {
         try {
             ArrayList<Object> original;
@@ -526,10 +514,9 @@ public class Algorithm {
             ArrayList<Node> nodes = (ArrayList< Node>) original.get(1);
             pg.setEdges(edges);
             pg.setNodes(nodes);
-            System.out.println(history.size());
             repaint();
         } catch (Exception ex) {
-            Logger.getLogger(Algorithm.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AlgorithmPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

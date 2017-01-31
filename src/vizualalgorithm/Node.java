@@ -26,6 +26,10 @@ public class Node implements Serializable {
     private String name;
     private int x, y;
     private boolean selected;
+    /**
+     * Cena součtu cest (pro dijksktru);
+     */
+    private int pathCost = Integer.MAX_VALUE;
 
     /**
      * Hrany vycházející z tohoto bodu. Pro funkcionalitu procházení grafu
@@ -39,22 +43,26 @@ public class Node implements Serializable {
     /**
      * Startovní bod
      */
-    boolean start = false;
+    private boolean start = false;
     /**
      * Konečný bod
      */
-    boolean finish = false;
+    private boolean finish = false;
     /**
      * Navštívený (neaktivní)
      */
-    boolean visited = false;
+    private boolean visited = false;
     /**
      * Uložený v zásobníku
      */
-    boolean stacked = false;
+    private boolean stacked = false;
+    /**
+     * Pro vykreslování vzdálenosti místo názvu
+     */
+    private boolean dijkstra = false;
 
     //barevná paleta
-    static Color colorDefault = Color.WHITE ;
+    static Color colorDefault = Color.WHITE;
     static Color colorStart = new Color(240, 240, 0);
     static Color colorFinish = new Color(255, 121, 77);
     static Color colorVisited = new Color(82, 173, 114);
@@ -149,6 +157,14 @@ public class Node implements Serializable {
         return pathBack;
     }
 
+    public int getPathCost() {
+        return pathCost;
+    }
+
+    public void setPathCost(int cost) {
+        this.pathCost = cost;
+    }
+
     public Edge getEdgeTo(Node n) {
         for (Edge e : outcome) {
             if ((e.getTo().equals(n) || e.getTo().equals(this)) && (e.getFrom().equals(n) || e.getFrom().equals(this))) {
@@ -156,6 +172,10 @@ public class Node implements Serializable {
             }
         }
         return null;
+    }
+    
+    public void setDijkstra(boolean x){
+        dijkstra = x;
     }
 
     public void paint(Graphics g) {
@@ -189,7 +209,18 @@ public class Node implements Serializable {
         g2.setStroke(oldStroke);
         Font font = new Font("Serif", Font.PLAIN, 20);
         g2.setFont(font);
-        g2.drawString(name, (float) (x - size / 4), (float) (y + size / 4));
+        String text = "";
+        if (dijkstra){
+           if (pathCost == Integer.MAX_VALUE){
+               text = "inf";
+           } else {
+               text = ""+pathCost;
+           }
+        } else {
+            text = name;
+        }
+          g2.drawString(text, (float) (x - size / 4), (float) (y + size / 4));
+       
     }
 
     @Override

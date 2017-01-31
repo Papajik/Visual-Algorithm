@@ -160,10 +160,10 @@ public class Edge implements Serializable {
 
         Font font = new Font("Serif", Font.PLAIN, 20);
         g2.setFont(font);
-        if (!oriented) {
-            drawArrow(g2, finish, start);
+        if (oriented) {
+            drawArrow(g2, start, finish);
         }
-        drawArrow(g2, start, finish);
+       // drawArrow(g2, start, finish);
         g2.setColor(colorString);
         g2.setStroke(oldStroke);
         g2.drawString("" + length, (float) ((from.getX() + to.getX()) / 2), (float) ((from.getY() + to.getY()) / 2));
@@ -184,6 +184,10 @@ public class Edge implements Serializable {
             g2.draw(new Line2D.Double(tip.x, tip.y, x, y));
             rho = theta - deviation;
         }
+    }
+    
+    public boolean contains(Node e){
+        return (e.equals(to)||e.equals(from));
     }
 
     @Override

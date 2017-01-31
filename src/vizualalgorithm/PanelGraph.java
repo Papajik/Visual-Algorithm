@@ -18,15 +18,20 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -37,7 +42,7 @@ public class PanelGraph extends JPanel {
     /**
      * Představuje instanci třídy procházející graf
      */
-    private Algorithm alg;
+    private AlgorithmPanel alg;
     /**
      * Pokud true - vytváříme graf Pokud false - jsme v prostředí pro
      */
@@ -87,13 +92,14 @@ public class PanelGraph extends JPanel {
 
     public PanelGraph() {
         super(new BorderLayout());
+        super.setBackground(Color.white);
         nodes = new ArrayList<>();
         edges = new ArrayList<>();
         changed = false;
         setProperties();
         setCreateBar();
         setMouse();
-        setBackground(Color.white);
+        setKeyboard();
         cards.show(rightPanel, "node");
     }
 
@@ -108,6 +114,7 @@ public class PanelGraph extends JPanel {
     public Node getSelectedNode() {
         return selectedNode;
     }
+
     public ArrayList<Node> getNodes() {
         return nodes;
     }
@@ -131,17 +138,29 @@ public class PanelGraph extends JPanel {
         cards.show(rightPanel, "node");
 
     }
-    
-    public void deselectAll(){
-        for (Node n: nodes){
+/**
+ * Odstraní označení u všech uzlů a hran 
+ */
+    public void deselectAll() {
+        for (Node n : nodes) {
             n.setSelected(false);
         }
-        for (Edge e: edges){
+        for (Edge e : edges) {
             e.setSelected(false);
         }
     }
+    /**
+     * Nastaví všechny uzly na vykrelování nejkratších vzdáleností
+     * @param x 
+     */
+    public void setDijkstra(boolean x){
+        for (Node n: nodes){
+            n.setDijkstra(true);
+        }
+        
+    }
 
-    //Seting mouse listeners
+    //<editor-fold desc="Setting up mouse and keyboard listeners" defaultstate="collapsed">
     private void setMouse() {
         MouseListener mouseListener = new MouseListener() {
             @Override
@@ -265,6 +284,34 @@ public class PanelGraph extends JPanel {
         };
         this.addMouseMotionListener(ml);
     }
+    
+    private void setKeyboard(){
+        Action delete = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("DELTE");
+                if (selectedEdge!=null){
+                    edges.remove(selectedEdge);
+                    selectedEdge = null;
+                 
+                }
+                if (selectedNode!=null){
+                   for(Iterator<Edge> it = edges.iterator(); it.hasNext();){
+                       Edge edge = it.next();
+                       if (edge.contains(selectedNode)){
+                           it.remove();
+                       }
+                   }
+                   nodes.remove(selectedNode);
+                   selectedNode = null;
+                }
+                 repaint();
+            }
+        };
+        this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DELETE"), "delete");
+        this.getActionMap().put("delete", delete);
+    }
+    //</editor-fold>
     //<editor-fold desc="Work with Nodes and Edges" defaultstate="collapsed">
 
     private Node createNode(int x, int y) {
@@ -440,7 +487,7 @@ public class PanelGraph extends JPanel {
         });
 
         jbRun.addActionListener((ActionEvent e) -> {
-            alg = new Algorithm(this);
+            alg = new AlgorithmPanel(this);
             createBar.setVisible(false);
 
             cards.show(rightPanel, "options");
@@ -550,7 +597,7 @@ public class PanelGraph extends JPanel {
                 cards.show(rightPanel, "edge");
             }
         } else {
-            alg.updateNode(selectedNode);
+            alg.updateNodeName(selectedNode);
         }
     }
 

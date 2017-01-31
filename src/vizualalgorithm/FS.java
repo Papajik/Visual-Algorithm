@@ -11,6 +11,13 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
+import static java.lang.Thread.sleep;
 
 /**
  *
@@ -18,16 +25,15 @@ import static java.lang.Thread.sleep;
  */
 public class FS implements Runnable {
 
-    private Algorithm alg;
+    private AlgorithmPanel alg;
     private Node finish;
     private LinkedList<Node> queue;
     private Stack<Node> stack;
     private Node last;
     private final Object lock;
     private boolean run = true;
-    private boolean first = true;
     private boolean skip = false;
-    private boolean mode;
+    private final boolean mode;
 
     public Node getFinish() {
         return finish;
@@ -82,7 +88,7 @@ public class FS implements Runnable {
      * @param alg
      * @param mode True = nastavit frontu False = nastavit zásobník
      */
-    public FS(Algorithm alg, boolean mode) {
+    public FS(AlgorithmPanel alg, boolean mode) {
         this.mode = mode;
         this.alg = alg;
         queue = new LinkedList<>();
@@ -95,7 +101,6 @@ public class FS implements Runnable {
     public void run() {
 
         boolean found = false;
-        if (first) {
             finish = alg.getFinish();
             if (finish != null) {
                 System.out.println("DFS: hledaný - " + finish.getName());
@@ -104,8 +109,6 @@ public class FS implements Runnable {
             addCollection(start);
             start.setVisited(true);
             last = start;
-            first = false;
-        }
 
         while (!isCollectionEmpty()) {
 
@@ -176,7 +179,7 @@ public class FS implements Runnable {
             alg.write("Neexistuje žádná cesta", null);
         }
         alg.setHistoryPoint();
-        alg.threadStoped();
+        alg.threadStopped();
     }
 
     private void addCollection(Node e) {

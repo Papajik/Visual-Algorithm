@@ -8,6 +8,7 @@ package vizualalgorithm;
 import java.awt.CardLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -128,11 +129,8 @@ public class Window extends JFrame {
 
         itLoadDaGraph.addActionListener((ActionEvent e) -> {
             DatabaseConnector con = new DatabaseConnector(this);
-            boolean choosed = con.load();
-            if (choosed) {
-                panelGraph.setNodes(con.getNodes());
-                panelGraph.setEdges(con.getEdges());
-            }
+            con.load();
+
         });
 
         itSaveDatabase.addActionListener((ActionEvent e) -> {
@@ -150,6 +148,7 @@ public class Window extends JFrame {
         panelGraph.setEdges(edges);
         panelGraph.paintComponent();
         setPanel(1);
+        setVisible(true);
     }
 
     public void setPanel(int p) {
