@@ -17,6 +17,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
@@ -184,7 +185,9 @@ public class PanelGraph extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
-
+                if (alg != null) {
+                    //  System.out.println(alg.filePath);   
+                }
                 if (rightPanel.getBounds().contains(e.getX(), e.getY())) {
                     return;
                 }
@@ -471,10 +474,9 @@ public class PanelGraph extends JPanel {
         jbEdge = new JButton("Nová hrana");
         jbRun = new JButton("Spusť algoritmus");
 
-        String filePath = new File("").getAbsolutePath() + "\\src\\Assets\\";
-        jbNode.setIcon(new ImageIcon(filePath + "Node.png"));
-        jbEdge.setIcon(new ImageIcon(filePath + "Edge.png"));
-        jbRun.setIcon(new ImageIcon(filePath + "Run.png"));
+        jbNode.setIcon(new ImageIcon(this.getClass().getResource("/Assets/Node.png")));
+        jbEdge.setIcon(new ImageIcon(this.getClass().getResource("/Assets/Edge.png")));
+        jbRun.setIcon(new ImageIcon(this.getClass().getResource("/Assets/Run.png")));
 
         createBar.addSeparator();
         createBar.add(jbNode);
