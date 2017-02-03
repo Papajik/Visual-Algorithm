@@ -42,9 +42,10 @@ public class PanelGraph extends JPanel {
     /**
      * Představuje instanci třídy procházející graf
      */
-    private AlgorithmPanel alg;
+    private PanelAlgorithm alg;
     /**
-     * Pokud true - vytváříme graf Pokud false - jsme v prostředí pro
+     * Pokud true - vytváříme graf Pokud false - jsme v prostředí pro tvorbu
+     * grafu
      */
     private boolean generateGraph = false;
     /**
@@ -138,9 +139,10 @@ public class PanelGraph extends JPanel {
         cards.show(rightPanel, "node");
 
     }
-/**
- * Odstraní označení u všech uzlů a hran 
- */
+
+    /**
+     * Odstraní označení u všech uzlů a hran
+     */
     public void deselectAll() {
         for (Node n : nodes) {
             n.setSelected(false);
@@ -149,15 +151,17 @@ public class PanelGraph extends JPanel {
             e.setSelected(false);
         }
     }
+
     /**
      * Nastaví všechny uzly na vykrelování nejkratších vzdáleností
-     * @param x 
+     *
+     * @param x
      */
-    public void setDijkstra(boolean x){
-        for (Node n: nodes){
+    public void setDijkstra(boolean x) {
+        for (Node n : nodes) {
             n.setDijkstra(true);
         }
-        
+
     }
 
     //<editor-fold desc="Setting up mouse and keyboard listeners" defaultstate="collapsed">
@@ -169,27 +173,27 @@ public class PanelGraph extends JPanel {
                     return;
                 }
                 if (chooser == 1) {
-                    // System.out.println("Creating node");
                     Node n = createNode(e.getX(), e.getY());
-//                    nodesAndEdges.add(n);
                     nodes.add(n);
                 }
                 if (chooser == 2 && getNode(e.getX(), e.getY()) != null && getNode(e.getX(), e.getY()) != selectedNode) {
                     edges.add(new Edge(selectedNode, getNode(e.getX(), e.getY()), false, 1));
-//                    nodesAndEdges.add(new Edge(selectedNode, getNode(e.getX(), e.getY()), false, 1));
                 }
                 paintImmediately(0, 0, getWidth(), getHeight());
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
+
                 if (rightPanel.getBounds().contains(e.getX(), e.getY())) {
                     return;
                 }
+                deselectProperties();
                 if (selectNode(getNode(e.getX(), e.getY()))) {
-                } else if (!selectEdge(getEdge(e.getX(), e.getY()))) {
-
-                    deselectProperties();
+                    deselectEdge();
+                    updateProperties(true);
+                } else if (selectEdge(getEdge(e.getX(), e.getY()))) {
+                    updateProperties(false);
                 }
 
                 paintImmediately(0, 0, getWidth(), getHeight());
@@ -197,39 +201,44 @@ public class PanelGraph extends JPanel {
 
             private boolean selectNode(Node n) {
                 if (selectedNode != null) {
-                    if (selectedEdge != null) {
-                        selectedEdge.setSelected(false);
+                    if (selectedNode == n) {
+                        return true;
+                    } else {
+                        selectedNode.setSelected(false);
                     }
-                    selectedNode.setSelected(false);
-                    deselectProperties();
                 }
-
                 selectedNode = n;
-                if (selectedNode != null) {
-                    updateProperties(true);
+                if (selectedNode == null) {
+                    return false;
+                } else {
                     selectedNode.setSelected(true);
                     return true;
                 }
-                return false;
+            }
+
+            private void deselectEdge() {
+                if (selectedEdge != null) {
+                    selectedEdge.setSelected(false);
+                    selectedEdge = null;
+                }
             }
 
             private boolean selectEdge(Edge n) {
                 if (!generateGraph) {
                     if (selectedEdge != null) {
-                        selectedEdge.setSelected(false);
-                        if (selectedNode != null) {
-                            selectedNode.setSelected(false);
+                        if (selectedEdge == n) {
+                            return true;
+                        } else {
+                            selectedEdge.setSelected(false);
                         }
                     }
-
                     selectedEdge = n;
-                    if (n != null) {
-
-                        updateProperties(false);
+                    if (selectedEdge == null) {
+                        return false;
+                    } else {
                         selectedEdge.setSelected(true);
                         return true;
                     }
-                    return false;
                 } else {
                     return false;
                 }
@@ -237,13 +246,11 @@ public class PanelGraph extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                //System.out.println("Graph: Mouse released");
                 if (selectedNode != null && chooser == 2 && getNode(e.getX(), e.getY()) != null) {
                     System.out.println("Creating edge");
                     Edge edge = createEdge(selectedNode, getNode(e.getX(), e.getY()), false, 1);
                     if (edge != null) {
                         edges.add(edge);
-//                        nodesAndEdges.add(edge);
                     }
 
                 }
@@ -284,28 +291,28 @@ public class PanelGraph extends JPanel {
         };
         this.addMouseMotionListener(ml);
     }
-    
-    private void setKeyboard(){
+
+    private void setKeyboard() {
         Action delete = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("DELTE");
-                if (selectedEdge!=null){
+                if (selectedEdge != null) {
                     edges.remove(selectedEdge);
                     selectedEdge = null;
-                 
+
                 }
-                if (selectedNode!=null){
-                   for(Iterator<Edge> it = edges.iterator(); it.hasNext();){
-                       Edge edge = it.next();
-                       if (edge.contains(selectedNode)){
-                           it.remove();
-                       }
-                   }
-                   nodes.remove(selectedNode);
-                   selectedNode = null;
+                if (selectedNode != null) {
+                    for (Iterator<Edge> it = edges.iterator(); it.hasNext();) {
+                        Edge edge = it.next();
+                        if (edge.contains(selectedNode)) {
+                            it.remove();
+                        }
+                    }
+                    nodes.remove(selectedNode);
+                    selectedNode = null;
                 }
-                 repaint();
+                repaint();
             }
         };
         this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DELETE"), "delete");
@@ -373,6 +380,13 @@ public class PanelGraph extends JPanel {
         return new Edge(a, b, oriented, length);
     }
 
+    /**
+     * Kontrola, zda existuje hrana mezi dvěma body.
+     *
+     * @param a první bod
+     * @param b druhý bod
+     * @return
+     */
     private boolean edgeExists(Node a, Node b) {
         for (Edge e : edges) {
             if ((e.getFrom().equals(a) || e.getFrom().equals(b)) && (e.getTo().equals(a) || e.getTo().equals(b))) {
@@ -382,6 +396,13 @@ public class PanelGraph extends JPanel {
         return false;
     }
 
+    /**
+     * Metoda pro určení, který bod si uživatel přeje označit.
+     *
+     * @param x
+     * @param y
+     * @return
+     */
     private Node getNode(double x, double y) {
         for (Node nod : nodes) {
 
@@ -392,6 +413,13 @@ public class PanelGraph extends JPanel {
         return null;
     }
 
+    /**
+     * Metoda pro určení, kterou hranu si uživatel přeje označit.
+     *
+     * @param x
+     * @param y
+     * @return
+     */
     private Edge getEdge(double x, double y) {
         int hitSize = 8;
         Line2D.Double line;
@@ -403,16 +431,6 @@ public class PanelGraph extends JPanel {
                 return ed;
             }
         }
-//        for (Object e : nodesAndEdges) {
-//            if (e instanceof Edge) {
-//                Edge ed = (Edge) e;
-//                System.out.println(ed.getFrom().getName() + ":" + ed.getTo().getName());
-//                line = new Line2D.Double(ed.getFrom().getX(), ed.getFrom().getY(), ed.getTo().getX(), ed.getTo().getY());
-//                if (line.intersects(x - hitSize / 2, y - hitSize / 2, hitSize, hitSize)) {
-//                    return ed;
-//                }
-//            }
-//        }
         return null;
     }
 //</editor-fold>
@@ -442,6 +460,9 @@ public class PanelGraph extends JPanel {
 //</editor-fold>
     //<editor-fold desc="Creating JToolBar for generating graph" defaultstate="collapsed">
 
+    /**
+     * Vytvoří JToolBar s nástroji pro tvorbu grafu.
+     */
     private void setCreateBar() {
         JButton jbRun, jbNode, jbEdge;
         createBar = new JToolBar("Tvorba grafu");
@@ -487,7 +508,8 @@ public class PanelGraph extends JPanel {
         });
 
         jbRun.addActionListener((ActionEvent e) -> {
-            alg = new AlgorithmPanel(this);
+            deselectAll();
+            alg = new PanelAlgorithm(this);
             createBar.setVisible(false);
 
             cards.show(rightPanel, "options");
@@ -499,6 +521,11 @@ public class PanelGraph extends JPanel {
 
 //</editor-fold>
     //<editor-fold desc="Create Properties Panel" defaultstate="collapsed">
+    /**
+     * Nastaví panel vlastnosti objektu v grafu. Přidá obě varianty pro
+     * vlastnosti hrany i vrcholu. Přepínat mezi obsahem vlastností umožňuje
+     * card layout.
+     */
     private void setProperties() {
         cards = new CardLayout();
         rightPanel = new JPanel(cards);
@@ -563,6 +590,14 @@ public class PanelGraph extends JPanel {
         add(rightPanel, BorderLayout.EAST);
     }
 
+    /**
+     * Nastaví postraní panel s vlastnostmi vybraného objektu v závislosti na
+     * typu vybraného objektu.
+     *
+     * @param node Pokud node = true, zobrazí se vlastnosti vrcholu. V opačném
+     * případě dojde k zobrazení vlastností hrany.
+     *
+     */
     private void updateProperties(boolean node) {
         if (!generateGraph) {
             if (node) {
@@ -601,6 +636,9 @@ public class PanelGraph extends JPanel {
         }
     }
 
+    /**
+     * Nastaví program do stavu, kdy nebyl uživatelem vybrán žádný objekt grafu.
+     */
     private void deselectProperties() {
         tName.setText("");
         tName.setEditable(false);
@@ -614,9 +652,13 @@ public class PanelGraph extends JPanel {
         tStroke.setText("");
         tStroke.setEditable(false);
         tStroke.setEnabled(false);
+        combProperties.removeAllItems();
         combProperties.setEnabled(false);
     }
 
+    /**
+     * Nastaví tlačítka dostupná při vytváření grafu.
+     */
     private void setActions() {
         tName.addActionListener((ActionEvent e) -> {
             if (!nameExists(tName.getText())) {
